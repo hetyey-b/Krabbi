@@ -1,4 +1,4 @@
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Tile {
     Empty,
     Corner,
@@ -59,40 +59,44 @@ impl CanStandOn for Tile {
     }
 }
 
-struct BoardState {
+pub struct Board {
     board: [[Tile; 11]; 11],
 }
 
-impl BoardState {
-    fn new() -> BoardState {
+impl Board {
+    pub fn new() -> Board {
         let mut new_board = [[Tile::Empty;11]; 11];
 
         // set the corner points
         new_board[0][0] = Tile::Corner;
-        new_board[0][11] = Tile::Corner;
-        new_board[11][0] = Tile::Corner;
-        new_board[11][11] = Tile::Corner;
+        new_board[0][10] = Tile::Corner;
+        new_board[10][0] = Tile::Corner;
+        new_board[10][10] = Tile::Corner;
         // set the throne
         new_board[5][5] = Tile::ThroneEmpty;
 
-        BoardState { 
+        Board { 
             board: new_board,
         }
     }
 
-    fn get_tile(&self, x:usize, y:usize) -> Tile {
-        self.board[x][y] 
+    pub fn get_tile(&self, x:usize, y:usize) -> Result<Tile, String> {
+        if x > 10 || y > 10 {
+            return Err("Indexes must be between 0 and 10".to_string());
+        }
+
+        Ok(self.board[x][y])
     }
 
-    fn set_tile(&mut self, new_tile:Tile, x:usize, y:usize) {
+    pub fn set_tile(&mut self, new_tile:Tile, x:usize, y:usize) {
         self.board[x][y] = new_tile;
     }
 
-    fn print_board(&self) {
+    pub fn print_board(&self) {
         for i in 0..self.board.len() {
             for j in 0..self.board[i].len() {
                 match self.board[i][j] {
-                    Tile::Empty => print!("0"),
+                    Tile::Empty => print!("."),
                     Tile::Corner | Tile::ThroneEmpty => print!("X"),
                     Tile::Black => print!("B"),
                     Tile::White => print!("W"),
