@@ -1,4 +1,51 @@
+use std::cmp::{min,max};
 use super::board::{Board, Tile, CanStandOn, Passable};
+
+pub fn is_legal_move(board: &Board, x_from: usize, y_from: usize, x_to:usize, y_to:usize) -> bool {
+    if x_from > 10 || y_from > 10 || x_to > 10 || y_to > 10 {
+        return false;
+    }
+
+    let from_result = board.get_tile(x_from, y_from);
+    let to_result = board.get_tile(x_to, y_to);
+
+    if from_result.is_err() || to_result.is_err() {
+        return false;
+    }
+
+    let from = from_result.unwrap();
+    let to = to_result.unwrap();
+
+    if from == Tile::Empty || from == Tile::ThroneEmpty || from == Tile::Corner {
+        return false;
+    }
+
+    if !to.can_stand_on() && from != Tile::King && from != Tile::ThroneWithKing {
+        return false;
+    }
+
+    if (x_from != x_to) && (y_from != y_to) {
+        return false;
+    }
+
+    for x in min(x_to,x_from)..=max(x_to,x_from) {
+        for y in min(y_to,y_from)..=max(y_to,y_from) {
+            let current_result = board.get_tile(x, y);
+
+            if current_result.is_err() {
+                return false;
+            }
+
+            let current = current_result.unwrap();
+            
+            if !current.passable() {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
 
 pub fn get_legal_moves(board: Board, x: usize, y: usize) -> Result<Vec<(usize,usize)>, String> {
     /*
@@ -208,5 +255,33 @@ mod tests {
         assert!(legal_moves.contains(&(6,5)));
 
         assert!(legal_moves.contains(&(5,5)));
+    }
+
+    #[test]
+    fn test_legal_move_wrong_index() {
+        let mut board: Board = Board::new();
+        board.set_tile(Tile::White, 4, 4);
+
+        assert_eq!(is_legal_move(&board, 4, 4, 11, 12), false);
+        assert_eq!(is_legal_move(&board, 12, 11, 4, 4), false);
+        assert_eq!(is_legal_move(&board, 5, 5, 6, 6), false);
+    }
+
+    #[test]
+    fn test_legal_move_valid_index() {
+        let mut board: Board = Board::new();
+        board.set_tile(Tile::White, 4, 5);
+        board.set_tile(Tile::Black, 7, 5);
+
+        // TODO
+        assert!(is_legal_move(&board, 4, 5, 6, 5));
+        assert!(is_legal_move(&board, 4, 5, 0, 5));
+        assert!(is_legal_move(&board, 4, 5, 4, 0));
+        assert!(is_legal_move(&board, 4, 5, 4, 10));
+        // END OF TODO
+
+        assert_eq!(is_legal_move(&board, 4, 5, 5, 5), false);
+        assert_eq!(is_legal_move(&board, 4, 5, 7, 5), false);
+        assert_eq!(is_legal_move(&board, 4, 5, 8, 5), false);
     }
 }
