@@ -13,6 +13,21 @@ pub enum Tile {
 pub enum Color {
     Black,
     White,
+    None,
+}
+
+pub trait HasColor {
+    fn color(&self) -> Color;
+}
+
+impl HasColor for Tile {
+    fn color(&self) -> Color {
+        match &self {
+            Tile::Empty | Tile::Corner | Tile::ThroneEmpty => Color::None,
+            Tile::Black => Color::Black,
+            Tile::White | Tile::King | Tile::ThroneWithKing => Color::White,
+        }
+    }
 }
 
 pub trait Captures {
