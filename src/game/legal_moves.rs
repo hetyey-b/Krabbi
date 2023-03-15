@@ -30,6 +30,11 @@ pub fn is_legal_move(board: &Board, x_from: usize, y_from: usize, x_to:usize, y_
 
     for x in min(x_to,x_from)..=max(x_to,x_from) {
         for y in min(y_to,y_from)..=max(y_to,y_from) {
+            if x == x_from && y == y_from {
+                // we don't want to check the tile that the piece being moved is on
+                continue;
+            }
+
             let current_result = board.get_tile(x, y);
 
             if current_result.is_err() {
@@ -37,7 +42,7 @@ pub fn is_legal_move(board: &Board, x_from: usize, y_from: usize, x_to:usize, y_
             }
 
             let current = current_result.unwrap();
-            
+
             if !current.passable() {
                 return false;
             }
