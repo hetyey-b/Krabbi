@@ -62,8 +62,8 @@ const KING_COORD: (usize,usize) = (5,5);
 
 
 pub struct Game {
-    board: Board,
-    current_player: Color,
+    pub board: Board,
+    pub current_player: Color,
 }
 
 impl Game {
@@ -84,6 +84,29 @@ impl Game {
         }
     }
 
+    pub fn from_string(str: String) -> Result<Game, String> {
+        if str.len() != 122 {
+            return Err(format!("Incorrect length {} instead of 122", str.len()));
+        }
+
+        let new_current_player: Color;
+
+        if str.starts_with('w') {
+            new_current_player = Color::White;
+        } else if str.starts_with('b') {
+            new_current_player = Color::Black;
+        } else {
+            return Err("Incorrect color marker char!".to_string());
+        }
+
+        let new_board = Board::from_string(str)?;
+
+        Ok(Game {
+            board: new_board,
+            current_player: new_current_player,
+        })
+    }
+
     pub fn print_board(&self) {
         self.board.print_board();
         println!("");
@@ -92,6 +115,18 @@ impl Game {
         } else {
             println!("Next move: White");
         }
+    }
+
+    pub fn to_string(&self) -> String {
+        let mut str = String::from("");
+        
+        if self.current_player == Color::Black {
+            str.push('b');
+        } else {
+            str.push('w');
+        }
+
+        format!("{}{}",str,self.board.to_string())
     }
 
     pub fn make_move(&mut self, x_from: usize, y_from: usize, x_to: usize, y_to: usize) -> Result<&Board, &str> {

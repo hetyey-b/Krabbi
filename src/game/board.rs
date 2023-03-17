@@ -75,7 +75,7 @@ impl CanStandOn for Tile {
 }
 
 pub struct Board {
-    board: [[Tile; 11]; 11],
+    pub board: [[Tile; 11]; 11],
 }
 
 impl Board {
@@ -93,6 +93,50 @@ impl Board {
         Board { 
             board: new_board,
         }
+    }
+
+    pub fn from_string(str: String) -> Result<Board, String> {
+        let mut new_board = [[Tile::Empty;11];11];
+
+        for (i, c) in str.chars().enumerate() {
+            let x = i / 11;
+            let y = i % 11;
+
+            match c {
+                '.' => new_board[x][y] = Tile::Empty,
+                'X' => new_board[x][y] = Tile::Empty,
+                'B' => new_board[x][y] = Tile::Empty,
+                'W' => new_board[x][y] = Tile::Empty,
+                'K' => new_board[x][y] = Tile::Empty,
+                'T' => new_board[x][y] = Tile::Empty,
+                't' => new_board[x][y] = Tile::Empty,
+                _ => return Err(format!("Invalid character {} at index {}",c,i))
+            }
+        } 
+
+        Ok(Board {
+            board: new_board
+        })
+    }
+
+    pub fn to_string(&self) -> String {
+        let mut str: String = String::from("");
+
+        for row in self.board.iter() {
+            for tile in row.iter() {
+                match tile {
+                    Tile::Empty => str.push('.'),
+                    Tile::Corner => str.push('X'),
+                    Tile::Black => str.push('B'),
+                    Tile::White => str.push('W'),
+                    Tile::King => str.push('K'),
+                    Tile::ThroneWithKing => str.push('T'),
+                    Tile::ThroneEmpty => str.push('t'),
+                }
+            }
+        }
+
+        return str;
     }
 
     pub fn get_tile(&self, x:usize, y:usize) -> Result<Tile, String> {
