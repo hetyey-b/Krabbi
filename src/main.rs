@@ -2,6 +2,7 @@ use actix_web::{web, get, post, App, HttpResponse, HttpServer, Responder, Result
 use dotenv::dotenv;
 use game::{Game, board::{Board, Color, Tile}};
 use serde::Deserialize;
+use rusqlite::{NO_PARAMS, params, Connection, Result as RusqliteResult};
 
 pub mod game;
 
@@ -24,6 +25,8 @@ pub mod game;
 //     println!("{}", game.to_string().len());
 // }
 
+static DB_NAME: &str = "test.db";
+
 #[derive(Deserialize)]
 struct NewGameInfo {
     player_color: String,
@@ -42,6 +45,11 @@ async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+
+    println!("Connecting to database...");
+    let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
+    println!("Connected to {}",DB_NAME);
+
     println!("Loading .env variables...");
     dotenv().ok(); // This line loads the environment variables
 
