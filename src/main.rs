@@ -8,21 +8,23 @@ pub mod game;
 
 fn main() {
     let mut game: Game = Game::new();
-
+    
     game.print_board();
-
     println!("--------------------------");
-
-    let move_result = game.make_move(0, 3, 3, 3);
-
+    
+    let move_result = game.make_move(0, 4, 3, 4);
+    
     if move_result.is_err() {
         println!("Illegal move");
     }
-
+    
     game.print_board();
-
-    println!("");
-    println!("{}", game.to_string().len());
+    
+    println!("--------------------------");
+    
+    game.make_move(5, 3, 3, 3);
+    
+    game.print_board();
 }
 //
 // static DB_NAME: &str = "test.db";

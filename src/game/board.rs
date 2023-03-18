@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Tile {
     Empty,
     Corner,
@@ -9,7 +9,7 @@ pub enum Tile {
     ThroneEmpty,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Color {
     Black,
     White,
@@ -74,6 +74,7 @@ impl CanStandOn for Tile {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Board {
     pub board: [[Tile; 11]; 11],
 }

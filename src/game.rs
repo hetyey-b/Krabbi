@@ -1,9 +1,10 @@
-use self::{legal_moves::is_legal_move, board::Board, board::Color, board::Tile};
+use self::{legal_moves::is_legal_move, board::Board, board::Color, board::Tile, after_move_eval::after_move_eval};
 use crate::game::board::HasColor;
 
 pub mod legal_moves;
 pub mod board;
 pub mod ai;
+pub mod after_move_eval;
 
 const BLACK_COORDS: [(usize, usize); 24] = [
     (0,3),
@@ -154,13 +155,13 @@ impl Game {
             self.board.set_tile(Tile::Empty, x_from, y_from);
         }
 
+        self.board = after_move_eval(self.board, x_to, y_to);
+
         if self.current_player == Color::White {
             self.current_player = Color::Black;
         } else {
             self.current_player = Color::White;
         }
-
-        // TODO: Post move eval
 
         return Ok(&self.board);
     }
