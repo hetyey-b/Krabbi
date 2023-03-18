@@ -48,6 +48,19 @@ impl Captures for Tile {
     }
 }
 
+pub trait CapturesKing {
+    fn captures_king(&self) -> bool;
+}
+
+impl CapturesKing for Tile {
+    fn captures_king(&self) -> bool {
+        match &self {
+            Tile::ThroneEmpty | Tile::Black => true,
+            _ => false
+        }
+    }
+}
+
 pub trait Passable {
     fn passable(&self) -> bool;
 }

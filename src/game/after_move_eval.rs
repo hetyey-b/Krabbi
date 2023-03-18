@@ -1,24 +1,48 @@
-use super::board::{Board, HasColor, Color, Tile, Captures};
+use super::board::{Board, HasColor, Color, Tile, Captures, CapturesKing};
 
 fn captures_in_dir(board: Board, x: usize, y: usize, x_offset: isize, y_offset: isize) -> bool {
-    let captured_x = usize::try_from(isize::try_from(x).unwrap() + x_offset).unwrap();
-    let captured_y = usize::try_from(isize::try_from(y).unwrap() + y_offset).unwrap();
-    let assisting_x = usize::try_from(isize::try_from(x).unwrap() + (x_offset * 2)).unwrap();
-    let assisting_y = usize::try_from(isize::try_from(y).unwrap() + (y_offset * 2)).unwrap();
+    let captured_x: usize;
+    let captured_y: usize;
+    let assisting_x: usize;
+    let assisting_y: usize;
+    {
+        let captured_x_result = usize::try_from(isize::try_from(x).unwrap() + x_offset);
+        let captured_y_result = usize::try_from(isize::try_from(y).unwrap() + y_offset);
+        let assisting_x_result = usize::try_from(isize::try_from(x).unwrap() + (x_offset * 2));
+        let assisting_y_result = usize::try_from(isize::try_from(y).unwrap() + (y_offset * 2));
 
-    let capturing_piece_result = board.get_tile(x, y);
-    let captured_piece_result = board.get_tile(captured_x, captured_y);
-    let assisting_piece_result = board.get_tile(assisting_x, assisting_y);
+        if captured_x_result.is_err()
+            || captured_y_result.is_err()
+            || assisting_x_result.is_err()
+            || assisting_y_result.is_err() {
+            return false;
+        }
 
-    if capturing_piece_result.is_err() 
-        || captured_piece_result.is_err() 
-        || assisting_piece_result.is_err() {
-        return false;
+        captured_x = captured_x_result.unwrap();
+        captured_y = captured_y_result.unwrap();
+        assisting_x = assisting_x_result.unwrap();
+        assisting_y = assisting_y_result.unwrap();
     }
 
-    let capturing_piece = capturing_piece_result.unwrap();
-    let captured_piece = captured_piece_result.unwrap();
-    let assisting_piece = assisting_piece_result.unwrap();
+    let capturing_piece;
+    let captured_piece;
+    let assisting_piece;
+    {
+        let capturing_piece_result = board.get_tile(x, y);
+        let captured_piece_result = board.get_tile(captured_x, captured_y);
+        let assisting_piece_result = board.get_tile(assisting_x, assisting_y);
+
+        if capturing_piece_result.is_err() 
+            || captured_piece_result.is_err() 
+            || assisting_piece_result.is_err() {
+            return false;
+        }
+
+        capturing_piece = capturing_piece_result.unwrap();
+        captured_piece = captured_piece_result.unwrap();
+        assisting_piece = assisting_piece_result.unwrap();
+    }
+
 
     if captured_piece.color() == Color::None {
         return false;
@@ -47,10 +71,10 @@ fn captures_in_dir(board: Board, x: usize, y: usize, x_offset: isize, y_offset: 
     let king_capture_assisting_do = king_capture_assisting_do_result.unwrap();
     let king_capture_assisting_le = king_capture_assisting_le_result.unwrap();
 
-    return king_capture_assisting_up == Tile::Black
-            && king_capture_assisting_ri == Tile::Black
-            && king_capture_assisting_do == Tile::Black
-            && king_capture_assisting_le == Tile::Black;
+    return king_capture_assisting_up.captures_king()
+            && king_capture_assisting_ri.captures_king()
+            && king_capture_assisting_do.captures_king()
+            && king_capture_assisting_le.captures_king();
 }
 
 /*
@@ -101,4 +125,81 @@ pub fn after_move_eval(board: Board, x: usize, y: usize) -> Board {
     // Check for white escape fort
     
     new_board
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_simple_captures() {
+        let mut board = Board::new();
+        board.set_tile(Tile::Black, 7, 1);
+        board.set_tile(Tile::Black, 5, 3);
+        board.set_tile(Tile::White, 7, 2);
+        board.set_tile(Tile::White, 6, 3);
+        board.set_tile(Tile::White, 7, 4);
+        board.set_tile(Tile::Black, 7, 3);
+        let new_board = after_move_eval(board, 7, 3);
+        assert_eq!(new_board.get_tile(7,2).unwrap(), Tile::Empty);
+        assert_eq!(new_board.get_tile(6,3).unwrap(), Tile::Empty);
+        assert_eq!(new_board.get_tile(7,4).unwrap(), Tile::White);
+    }
+
+    #[test]
+    fn test_empty_throne_capture() {
+        let mut board = Board::new();
+        board.set_tile(Tile::Black, 6, 5);
+        board.set_tile(Tile::White, 7, 5);
+        let new_board = after_move_eval(board, 7, 5);
+        assert_eq!(new_board.get_tile(6,5).unwrap(), Tile::Empty);
+    }
+
+    #[test]
+    fn test_full_throne_capture() {
+        let mut board = Board::new();
+        board.set_tile(Tile::ThroneWithKing, 5, 5);
+        board.set_tile(Tile::White, 6, 5);
+        board.set_tile(Tile::Black, 7, 5);
+        let new_board = after_move_eval(board, 6, 5);
+        assert_eq!(new_board.get_tile(6,5).unwrap(), Tile::White);
+    }
+
+    #[test]
+    fn test_corner_capture() {
+        let mut board = Board::new();
+        board.set_tile(Tile::White, 0, 1);
+        board.set_tile(Tile::Black, 0, 2);
+        let new_board = after_move_eval(board, 0, 2);
+        assert_eq!(new_board.get_tile(0,1).unwrap(), Tile::Empty);
+    }
+
+    #[test]
+    fn test_move_between() {
+        let mut board = Board::new();
+        board.set_tile(Tile::White, 0, 5);
+        board.set_tile(Tile::Black, 0, 4);
+        board.set_tile(Tile::Black, 0, 6);
+        let mut new_board = after_move_eval(board, 0, 5);
+        assert_eq!(new_board.get_tile(0,5).unwrap(), Tile::White);
+
+        new_board = after_move_eval(board, 0, 4);
+        assert_eq!(new_board.get_tile(0,5).unwrap(), Tile::Empty);
+    }
+
+    #[test]
+    fn test_king_captures() {
+        let mut board = Board::new();
+        board.set_tile(Tile::King, 6, 5);
+        board.set_tile(Tile::Black, 7, 5);
+        board.set_tile(Tile::Black, 6, 4);
+        board.set_tile(Tile::Black, 6, 6);
+        let mut new_board = after_move_eval(board, 6, 6);
+        assert_eq!(new_board.get_tile(6,5).unwrap(), Tile::Empty);
+
+        board.set_tile(Tile::King, 6, 5);
+        board.set_tile(Tile::Empty, 7, 5);
+        new_board = after_move_eval(board, 6, 6);
+        assert_eq!(new_board.get_tile(6,5).unwrap(), Tile::King);
+    }
 }
