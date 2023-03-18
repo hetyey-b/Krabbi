@@ -52,7 +52,7 @@ pub fn is_legal_move(board: &Board, x_from: usize, y_from: usize, x_to:usize, y_
     return true;
 }
 
-pub fn get_legal_moves(board: Board, x: usize, y: usize) -> Result<Vec<(usize,usize)>, String> {
+pub fn get_legal_moves(board: &Board, x: usize, y: usize) -> Result<Vec<(usize,usize)>, String> {
     /*
         1) check if there is a unit on the board at the coordinates
         2) go in each for direction
@@ -167,10 +167,10 @@ mod tests {
 
     #[test]
     fn test_indexing_err() {
-       assert!(get_legal_moves(Board::new(), 11, 4).is_err());
-       assert!(get_legal_moves(Board::new(), 4, 11).is_err());
+       assert!(get_legal_moves(&Board::new(), 11, 4).is_err());
+       assert!(get_legal_moves(&Board::new(), 4, 11).is_err());
        // Without piece
-       assert!(get_legal_moves(Board::new(), 4, 4).is_err());
+       assert!(get_legal_moves(&Board::new(), 4, 4).is_err());
     }
 
     #[test]
@@ -178,7 +178,7 @@ mod tests {
         let mut board: Board = Board::new();
         board.set_tile(Tile::King, 4, 4);
         
-        let legal_moves = get_legal_moves(board, 4, 4).unwrap();
+        let legal_moves = get_legal_moves(&board, 4, 4).unwrap();
         
         assert_eq!(legal_moves.len(), 20);
 
@@ -220,7 +220,7 @@ mod tests {
         board.set_tile(Tile::Black, 4, 7);
         board.set_tile(Tile::Black, 7, 5);
         
-        let legal_moves = get_legal_moves(board, 4, 5).unwrap();
+        let legal_moves = get_legal_moves(&board, 4, 5).unwrap();
         
         assert_eq!(legal_moves.len(), 7);
 
@@ -245,7 +245,7 @@ mod tests {
         board.set_tile(Tile::Black, 4, 7);
         board.set_tile(Tile::Black, 7, 5);
         
-        let legal_moves = get_legal_moves(board, 4, 5).unwrap();
+        let legal_moves = get_legal_moves(&board, 4, 5).unwrap();
         
         assert_eq!(legal_moves.len(), 8);
 
@@ -278,12 +278,10 @@ mod tests {
         board.set_tile(Tile::White, 4, 5);
         board.set_tile(Tile::Black, 7, 5);
 
-        // TODO
         assert!(is_legal_move(&board, 4, 5, 6, 5));
         assert!(is_legal_move(&board, 4, 5, 0, 5));
         assert!(is_legal_move(&board, 4, 5, 4, 0));
         assert!(is_legal_move(&board, 4, 5, 4, 10));
-        // END OF TODO
 
         assert_eq!(is_legal_move(&board, 4, 5, 5, 5), false);
         assert_eq!(is_legal_move(&board, 4, 5, 7, 5), false);

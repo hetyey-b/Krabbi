@@ -3,6 +3,7 @@ use crate::game::board::HasColor;
 
 pub mod legal_moves;
 pub mod board;
+pub mod ai;
 
 const BLACK_COORDS: [(usize, usize); 24] = [
     (0,3),
@@ -158,6 +159,8 @@ impl Game {
         } else {
             self.current_player = Color::White;
         }
+
+        // TODO: Post move eval
 
         return Ok(&self.board);
     }
