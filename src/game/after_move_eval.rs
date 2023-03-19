@@ -26,6 +26,14 @@ pub fn after_move_eval(board: Board, x: usize, y: usize) -> Board {
         return board;
     }
 
+    // Check for king escaped
+    if tile == Tile::King
+        && (x == 0 || x == 10)
+        && (y == 0 || y == 10) {
+        new_board.winner = Color::White;
+        return new_board;
+    }
+
     // Check for shieldwall capture
     let shieldwall_captured_coords = get_shield_wall_captures(board, x, y);
 
@@ -60,12 +68,12 @@ pub fn after_move_eval(board: Board, x: usize, y: usize) -> Board {
     
     // Check for black surrounds white
     if tile_color == Color::Black {
-
+        // TODO
     }
 
     // Check for white escape fort
     if tile_color == Color::White {
-
+        // TODO
     }
     
     new_board

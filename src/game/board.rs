@@ -90,6 +90,7 @@ impl CanStandOn for Tile {
 #[derive(Clone, Copy)]
 pub struct Board {
     pub board: [[Tile; 11]; 11],
+    pub winner: Color,
 }
 
 impl Board {
@@ -106,6 +107,7 @@ impl Board {
 
         Board { 
             board: new_board,
+            winner: Color::None,
         }
     }
 
@@ -129,7 +131,8 @@ impl Board {
         } 
 
         Ok(Board {
-            board: new_board
+            board: new_board,
+            winner: Color::None,
         })
     }
 

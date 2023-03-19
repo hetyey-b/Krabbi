@@ -163,6 +163,10 @@ impl Game {
             self.current_player = Color::White;
         }
 
+        if self.board.winner != Color::None {
+            // TODO
+        }
+
         return Ok(&self.board);
     }
 }
