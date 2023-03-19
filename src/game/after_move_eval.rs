@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use super::board::{Board, HasColor, Color, Tile, Captures, CapturesKing};
 
 fn captures_in_dir(board: Board, x: usize, y: usize, x_offset: isize, y_offset: isize) -> bool {
@@ -77,6 +79,123 @@ fn captures_in_dir(board: Board, x: usize, y: usize, x_offset: isize, y_offset: 
             && king_capture_assisting_le.captures_king();
 }
 
+fn get_shield_wall_captures(board: Board, x: usize, y: usize) -> Vec<(usize,usize)> {
+    /*
+        1) See if any neighbor is of opposite color
+        2) If so, floodfill on it, looking for it's color
+        3) If we hit an Empty, return just an empty Vector
+        4) When the fill is done, return an array of everything filled except the king
+            -> (The king lives through a shieldwall capture)
+    */
+    let capturing: Tile;
+    let up: Tile;
+    let right: Tile;
+    let down: Tile;
+    let left: Tile;
+    {
+        let up_result = board.get_tile(x-1, y); 
+        let ri_result = board.get_tile(x, y+1);
+        let do_result = board.get_tile(x+1, y);
+        let le_result = board.get_tile(x, y-1);
+        let capturing_result = board.get_tile(x, y);
+
+        if capturing_result.is_err() {
+            return Vec::new();
+        } 
+        capturing = capturing_result.unwrap();
+
+        up = if up_result.is_ok() {
+            up_result.unwrap()
+        } else {
+            Tile::Empty 
+        };
+        right = if ri_result.is_ok() {
+            ri_result.unwrap()
+        } else {
+            Tile::Empty 
+        };
+        down = if do_result.is_ok() {
+            do_result.unwrap()
+        } else {
+            Tile::Empty 
+        };
+        left = if le_result.is_ok() {
+            le_result.unwrap()
+        } else {
+            Tile::Empty 
+        };
+    }
+    let color = capturing.color();
+
+    if color == Color::None {
+        return Vec::new();
+    }
+
+    let captured_color = if color == Color::White {
+        Color::Black
+    } else {
+        Color::White
+    };
+
+    /*
+        1) create a function right inside here
+        2) instead of coloring, it adds coords to the vector, and checks whether those coords are in there
+    */ 
+
+    let mut flood_filled_tile_coords: Vec<(usize, usize)> = Vec::new();
+
+    let mut flood_fill = |ff_board: Board, ff_x: usize, ff_y: usize, ff_color: Color| {
+        if ff_x > 10 || ff_y > 10 {
+            return;
+        }
+        let tile_result = ff_board.get_tile(ff_x, ff_y);
+        if tile_result.is_err() {
+            return;
+        }
+
+        let tile = tile_result.unwrap();
+        if tile.color() != ff_color {
+            return;
+        }
+        if flood_filled_tile_coords.contains(&(ff_x, ff_y)) {
+            return;
+        }
+        let mut queue: VecDeque<(usize, usize)> = VecDeque::new();
+
+        queue.push_back((ff_x, ff_y));
+        while !queue.is_empty() {
+            let (x,y) = if let Some((x,y)) = queue.pop_front() { (x,y) } else { break; };
+            if x > 10 || y > 10 
+                || ff_board.get_tile(x,y).unwrap().color() != ff_color 
+                || flood_filled_tile_coords.contains(&(x,y)) {
+                continue;
+            } else {
+                flood_filled_tile_coords.push((x,y));
+                queue.push_back((ff_x-1, ff_y));
+                queue.push_back((ff_x, ff_y+1));
+                queue.push_back((ff_x+1, ff_y));
+                queue.push_back((ff_x, ff_y-1));
+            }
+        }
+    };
+
+    if up.color() == captured_color {
+       flood_fill(board,x-1,y,captured_color);
+    }
+    if right.color() == captured_color {
+       flood_fill(board,x,y+1,captured_color);
+    }
+    if down.color() == captured_color {
+       flood_fill(board,x+1,y,captured_color);
+    }
+    if left.color() == captured_color {
+       flood_fill(board,x,y-1,captured_color);
+    }
+
+    
+    flood_filled_tile_coords
+}
+
 /*
     Takes in a board, and the coordinates of the last piece that was moved.
     Returns the new state of the board, with captures evaluated
@@ -97,6 +216,13 @@ pub fn after_move_eval(board: Board, x: usize, y: usize) -> Board {
     }
 
     // Check for shieldwall capture
+    let shieldwall_captured_coords = get_shield_wall_captures(board, x, y);
+
+    for coords in shieldwall_captured_coords.iter() {
+        if board.get_tile(coords.0, coords.1).unwrap() != Tile::King {
+            new_board.set_tile(Tile::Empty, coords.0, coords.1);
+        }
+    }
 
     // Check for immediate captures
     //      > king is captured from 4 sides
