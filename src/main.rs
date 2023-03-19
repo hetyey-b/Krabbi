@@ -1,32 +1,27 @@
 use actix_web::{web, get, post, App, HttpResponse, HttpServer, Responder, Result};
 use dotenv::dotenv;
-use game::{Game, board::{Board, Color, Tile}};
+use game::{Game, board::{Board, Color, Tile}, after_move_eval::after_move_eval};
 use serde::Deserialize;
 use rusqlite::{NO_PARAMS, params, Connection, Result as RusqliteResult};
 
 pub mod game;
 
 fn main() {
-    let mut game: Game = Game::new();
-    
-    game.print_board();
-    println!("--------------------------");
-    
-    let move_result = game.make_move(0, 4, 3, 4);
-    
-    if move_result.is_err() {
-        println!("Illegal move");
-    }
-    
-    game.print_board();
-    
-    println!("--------------------------");
-    
-    game.make_move(5, 3, 3, 3);
-    
-    game.print_board();
+    let mut board = Board::new();
+    board.set_tile(Tile::White, 0, 1);
+    board.set_tile(Tile::King, 0, 2);
+    board.set_tile(Tile::White, 0, 3);
+    board.set_tile(Tile::Black, 1, 1);
+    board.set_tile(Tile::Black, 1, 2);
+    board.set_tile(Tile::Black, 1, 3);
+    board.set_tile(Tile::Black, 0, 4);
+    let new_board = after_move_eval(board, 1, 3);
+
+    board.print_board();
+    println!("---------------------");
+    new_board.print_board();
 }
-//
+
 // static DB_NAME: &str = "test.db";
 //
 // #[derive(Deserialize)]

@@ -93,10 +93,10 @@ fn get_shield_wall_captures(board: Board, x: usize, y: usize) -> Vec<(usize,usiz
     let down: Tile;
     let left: Tile;
     {
-        let up_result = board.get_tile(x-1, y); 
-        let ri_result = board.get_tile(x, y+1);
-        let do_result = board.get_tile(x+1, y);
-        let le_result = board.get_tile(x, y-1);
+        let up_result = if x <= 0 { Err("index too small".to_string()) } else { board.get_tile(x-1, y) }; 
+        let ri_result = if y >= 9 { Err("index too large".to_string()) } else { board.get_tile(x, y+1) };
+        let do_result = if x >= 9 { Err("index too large".to_string()) } else { board.get_tile(x+1, y) };
+        let le_result = if y <= 0 { Err("index too small".to_string()) } else { board.get_tile(x, y-1) };
         let capturing_result = board.get_tile(x, y);
 
         if capturing_result.is_err() {
@@ -157,24 +157,38 @@ fn get_shield_wall_captures(board: Board, x: usize, y: usize) -> Vec<(usize,usiz
         if tile.color() != ff_color {
             return;
         }
-        if flood_filled_tile_coords.contains(&(ff_x, ff_y)) {
-            return;
-        }
         let mut queue: VecDeque<(usize, usize)> = VecDeque::new();
 
         queue.push_back((ff_x, ff_y));
         while !queue.is_empty() {
+            println!("queue: {:?}",queue);
             let (x,y) = if let Some((x,y)) = queue.pop_front() { (x,y) } else { break; };
+            println!("(x,y) = ({},{})",x,y);
+            let current_tile = ff_board.get_tile(x,y).unwrap();
+
+            if current_tile == Tile::Empty {
+                flood_filled_tile_coords = Vec::new();
+                return;
+            }
+
             if x > 10 || y > 10 
-                || ff_board.get_tile(x,y).unwrap().color() != ff_color 
+                || current_tile.color() != ff_color 
                 || flood_filled_tile_coords.contains(&(x,y)) {
                 continue;
             } else {
                 flood_filled_tile_coords.push((x,y));
-                queue.push_back((ff_x-1, ff_y));
-                queue.push_back((ff_x, ff_y+1));
-                queue.push_back((ff_x+1, ff_y));
-                queue.push_back((ff_x, ff_y-1));
+                if x > 0 {
+                    queue.push_back((x-1, y));
+                }
+                if y < 10 {
+                    queue.push_back((x, y+1));
+                }
+                if x < 10 {
+                    queue.push_back((x+1, y));
+                }
+                if y > 0 {
+                    queue.push_back((x, y-1));
+                }
             }
         }
     };
@@ -220,6 +234,7 @@ pub fn after_move_eval(board: Board, x: usize, y: usize) -> Board {
 
     for coords in shieldwall_captured_coords.iter() {
         if board.get_tile(coords.0, coords.1).unwrap() != Tile::King {
+            println!("Removing at ({},{})", coords.0, coords.1);
             new_board.set_tile(Tile::Empty, coords.0, coords.1);
         }
     }
@@ -247,8 +262,14 @@ pub fn after_move_eval(board: Board, x: usize, y: usize) -> Board {
     }
     
     // Check for black surrounds white
-    
+    if tile_color == Color::Black {
+
+    }
+
     // Check for white escape fort
+    if tile_color == Color::White {
+
+    }
     
     new_board
 }
@@ -327,5 +348,33 @@ mod tests {
         board.set_tile(Tile::Empty, 7, 5);
         new_board = after_move_eval(board, 6, 6);
         assert_eq!(new_board.get_tile(6,5).unwrap(), Tile::King);
+    }
+
+    #[test]
+    fn test_shield_wall_capture() {
+        let mut board = Board::new();
+        board.set_tile(Tile::White, 0, 1);
+        board.set_tile(Tile::King, 0, 2);
+        board.set_tile(Tile::White, 0, 3);
+        board.set_tile(Tile::Black, 1, 1);
+        board.set_tile(Tile::Black, 1, 2);
+        board.set_tile(Tile::Black, 1, 3);
+        board.set_tile(Tile::Black, 0, 4);
+        let mut new_board = after_move_eval(board, 1, 3);
+        assert_eq!(new_board.get_tile(0,1).unwrap(), Tile::Empty);
+        assert_eq!(new_board.get_tile(0,2).unwrap(), Tile::King);
+        assert_eq!(new_board.get_tile(0,3).unwrap(), Tile::Empty);
+
+        board = Board::new();
+        board.set_tile(Tile::White, 0, 1);
+        board.set_tile(Tile::White, 0, 3);
+        board.set_tile(Tile::Black, 1, 1);
+        board.set_tile(Tile::Black, 1, 2);
+        board.set_tile(Tile::Black, 1, 3);
+        board.set_tile(Tile::Black, 0, 4);
+        new_board = after_move_eval(board, 1, 3);
+        assert_eq!(new_board.get_tile(0,1).unwrap(), Tile::White);
+        assert_eq!(new_board.get_tile(0,2).unwrap(), Tile::Empty);
+        assert_eq!(new_board.get_tile(0,3).unwrap(), Tile::White);
     }
 }
