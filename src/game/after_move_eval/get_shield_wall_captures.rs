@@ -83,9 +83,7 @@ pub fn get_shield_wall_captures(board: Board, x: usize, y: usize) -> Vec<(usize,
 
         queue.push_back((ff_x, ff_y));
         while !queue.is_empty() {
-            println!("queue: {:?}",queue);
             let (x,y) = if let Some((x,y)) = queue.pop_front() { (x,y) } else { break; };
-            println!("(x,y) = ({},{})",x,y);
             let current_tile = ff_board.get_tile(x,y).unwrap();
 
             if current_tile == Tile::Empty {

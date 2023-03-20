@@ -4,22 +4,22 @@ use game::{Game, board::{Board, Color, Tile}, after_move_eval::after_move_eval};
 use serde::Deserialize;
 use rusqlite::{NO_PARAMS, params, Connection, Result as RusqliteResult};
 
+use crate::game::after_move_eval::edge_fort::edge_fort;
+
 pub mod game;
 
 fn main() {
     let mut board = Board::new();
-    board.set_tile(Tile::White, 0, 1);
-    board.set_tile(Tile::King, 0, 2);
-    board.set_tile(Tile::White, 0, 3);
-    board.set_tile(Tile::Black, 1, 1);
-    board.set_tile(Tile::Black, 1, 2);
-    board.set_tile(Tile::Black, 1, 3);
-    board.set_tile(Tile::Black, 0, 4);
-    let new_board = after_move_eval(board, 1, 3);
+    board.set_tile(Tile::White,0,1);
+    board.set_tile(Tile::White,0,4);
+    board.set_tile(Tile::White,1,2);
+    board.set_tile(Tile::White,1,4);
+    board.set_tile(Tile::White,2,3);
+    board.set_tile(Tile::King,0,3);
 
     board.print_board();
-    println!("---------------------");
-    new_board.print_board();
+    println!("");
+    println!("Edge fort: {}",edge_fort(board));
 }
 
 // static DB_NAME: &str = "test.db";

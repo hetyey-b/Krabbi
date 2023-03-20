@@ -1,3 +1,5 @@
+use self::edge_fort::edge_fort;
+
 use super::board::{Board, HasColor, Color, Tile};
 
 use crate::game::after_move_eval::captures_in_dir::captures_in_dir;
@@ -5,7 +7,7 @@ use crate::game::after_move_eval::get_shield_wall_captures::get_shield_wall_capt
 
 pub mod captures_in_dir;
 pub mod get_shield_wall_captures;
-
+pub mod edge_fort;
 
 /*
     Takes in a board, and the coordinates of the last piece that was moved.
@@ -73,7 +75,9 @@ pub fn after_move_eval(board: Board, x: usize, y: usize) -> Board {
 
     // Check for white escape fort
     if tile_color == Color::White {
-        // TODO
+        if edge_fort(board) {
+            new_board.winner = Color::White;
+        }
     }
     
     new_board
