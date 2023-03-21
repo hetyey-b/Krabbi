@@ -4,22 +4,40 @@ use game::{Game, board::{Board, Color, Tile}, after_move_eval::after_move_eval};
 use serde::Deserialize;
 use rusqlite::{NO_PARAMS, params, Connection, Result as RusqliteResult};
 
-use crate::game::after_move_eval::edge_fort::edge_fort;
+use crate::game::after_move_eval::{edge_fort::edge_fort, surround_win::surround_win};
 
 pub mod game;
 
 fn main() {
     let mut board = Board::new();
-    board.set_tile(Tile::White,0,1);
-    board.set_tile(Tile::White,0,4);
-    board.set_tile(Tile::White,1,2);
-    board.set_tile(Tile::White,1,4);
-    board.set_tile(Tile::White,2,3);
-    board.set_tile(Tile::King,0,3);
+    for i in 1..=9 {
+        board.set_tile(Tile::Black, 1, i);
+        board.set_tile(Tile::Black, 9, i);
+    }
+    for i in 2..=8 {
+        board.set_tile(Tile::Black, i, 1);
+        board.set_tile(Tile::Black, i, 9);
+    }
+    board.set_tile(Tile::King, 5, 5);
+    board.set_tile(Tile::White, 4, 4);
+    board.set_tile(Tile::White, 4, 5);
+    board.set_tile(Tile::White, 4, 6);
+    board.set_tile(Tile::White, 5, 4);
+    board.set_tile(Tile::White, 5, 6);
+    board.set_tile(Tile::White, 6, 4);
+    board.set_tile(Tile::White, 6, 5);
+    board.set_tile(Tile::White, 6, 6);
+
+    board.set_tile(Tile::White, 0, 1);
+
+    board.set_tile(Tile::Empty, 0, 1);
+    board.set_tile(Tile::Empty, 1, 3);
+
+    board.set_tile(Tile::Black, 2, 3);
 
     board.print_board();
     println!("");
-    println!("Edge fort: {}",edge_fort(board));
+    println!("Surround win: {}",surround_win(board));
 }
 
 // static DB_NAME: &str = "test.db";
