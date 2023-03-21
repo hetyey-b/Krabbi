@@ -8,6 +8,7 @@ use crate::game::after_move_eval::get_shield_wall_captures::get_shield_wall_capt
 pub mod captures_in_dir;
 pub mod get_shield_wall_captures;
 pub mod edge_fort;
+pub mod surround_win;
 
 /*
     Takes in a board, and the coordinates of the last piece that was moved.
