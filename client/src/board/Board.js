@@ -61,9 +61,9 @@ const Board = ({playerName, setPlayerName}) => {
     };
 
     return(
-        <div>
+        <div className="flex items-center flex-col">
             <div
-                className="flex justify-between bg-amber-600 px-4 py-2"
+                className="flex w-full justify-between bg-amber-600 px-4 py-2"
             >
                 <a
                     className="cursor-pointer"
@@ -73,11 +73,12 @@ const Board = ({playerName, setPlayerName}) => {
                 </a>
                 <span className="font-bold">{playerName}</span>
             </div>
-            <div className="text-center m-2 columns-11 gap-0">
+            <div className="max-w-[330px] text-center m-2 columns-11 gap-0">
                 {
-                    BOARD.map(row => {
-                        return row.map(tile => 
+                    BOARD.map((row, x) => {
+                        return row.map((tile, y) => 
                             <img 
+                                key={`${tile}-${tile}-${x}-${y}`}
                                 className="mr-0 ml-0 h-[30px] w-[30px] m-0"
                                 src={tile_to_img(tile)}
                             />
