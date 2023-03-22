@@ -1,4 +1,5 @@
 use self::edge_fort::edge_fort;
+use self::surround_win::surround_win;
 
 use super::board::{Board, HasColor, Color, Tile};
 
@@ -71,7 +72,9 @@ pub fn after_move_eval(board: Board, x: usize, y: usize) -> Board {
     
     // Check for black surrounds white
     if tile_color == Color::Black {
-        // TODO
+       if surround_win(board) {
+           new_board.winner = Color::Black;
+       }
     }
 
     // Check for white escape fort
