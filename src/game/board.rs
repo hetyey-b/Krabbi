@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Tile {
     Empty,
@@ -114,19 +116,53 @@ impl Board {
     pub fn from_string(str: String) -> Result<Board, String> {
         let mut new_board = [[Tile::Empty;11];11];
 
-        for (i, c) in str.chars().enumerate() {
-            let x = i / 11;
-            let y = i % 11;
-
+        fn char_to_u8(c: char) -> Result<u8, String> {
             match c {
-                '.' => new_board[x][y] = Tile::Empty,
-                'X' => new_board[x][y] = Tile::Empty,
-                'B' => new_board[x][y] = Tile::Empty,
-                'W' => new_board[x][y] = Tile::Empty,
-                'K' => new_board[x][y] = Tile::Empty,
-                'T' => new_board[x][y] = Tile::Empty,
-                't' => new_board[x][y] = Tile::Empty,
-                _ => return Err(format!("Invalid character {} at index {}",c,i))
+                'B' => Ok(11),
+                'A' => Ok(10),
+                '9' => Ok(9),
+                '8' => Ok(8),
+                '7' => Ok(7),
+                '6' => Ok(6),
+                '5' => Ok(5),
+                '4' => Ok(4),
+                '3' => Ok(3),
+                '2' => Ok(2),
+                '1' => Ok(1),
+                _ => Err(format!("Invalid character {}", c)),
+
+            }
+        }
+
+        let mut row = 0;
+        let mut col = 0;
+        for (_i, c) in str.chars().enumerate() {
+            match c {
+                '/' => {
+                    row += 1;
+                    col = 0;
+                },
+                'b' => {
+                    new_board[row][col] = Tile::Black; 
+                },
+                'w' => {
+                    new_board[row][col] = Tile::White; 
+                },
+                'k' => {
+                    if row == 5 && col == 5 {
+                        new_board[row][col] = Tile::ThroneWithKing; 
+                    } else {
+                        new_board[row][col] = Tile::King; 
+                    }
+                },
+                _ => {
+                    let u8_result = char_to_u8(c);
+                    if u8_result.is_err() {
+                        return Err(format!("Invalid character: {}", c));
+                    }
+
+                    col += usize::from(u8_result.unwrap());
+                },
             }
         } 
 
@@ -136,24 +172,55 @@ impl Board {
         })
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn to_string(&self) -> Result<String,String> {
         let mut str: String = String::from("");
 
-        for row in self.board.iter() {
-            for tile in row.iter() {
-                match tile {
-                    Tile::Empty => str.push('.'),
-                    Tile::Corner => str.push('X'),
-                    Tile::Black => str.push('B'),
-                    Tile::White => str.push('W'),
-                    Tile::King => str.push('K'),
-                    Tile::ThroneWithKing => str.push('T'),
-                    Tile::ThroneEmpty => str.push('t'),
-                }
+        fn u8_to_char(num: u8) -> char {
+            match num {
+                11 => 'B',
+                10 => 'A',
+                9 => '9',
+                8 => '8',
+                7 => '7',
+                6 => '6',
+                5 => '5',
+                4 => '4',
+                3 => '3',
+                2 => '2',
+                1 => '1',
+                _ => '0',
             }
         }
 
-        return str;
+        for row in self.board.iter() {
+            let mut empty_count: u8 = 0;
+            for tile in row.iter() {
+                match tile {
+                    Tile::Empty | Tile::Corner | Tile::ThroneEmpty => {
+                        empty_count += 1;
+                    },
+                    _ => {
+                        if empty_count > 0 {
+                            str.push(u8_to_char(empty_count));
+                        }
+                        empty_count = 0;
+                        match tile {
+                            Tile::Black => str.push('b'),
+                            Tile::White => str.push('w'),
+                            Tile::King | Tile::ThroneWithKing => str.push('k'),
+                            _ => {return Err(format!("Invalid character {:?}", tile));},
+                        };
+                    }
+                }
+            }
+
+            if empty_count > 0 {
+                str.push(u8_to_char(empty_count));
+            }
+            str.push('/');
+        }
+
+        return Ok(str);
     }
 
     pub fn get_tile(&self, x:usize, y:usize) -> Result<Tile, String> {
@@ -181,5 +248,51 @@ impl Board {
             }
             println!("");
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_board_string_conversion() {
+        let mut board: Board = Board::new();
+        board.set_tile(Tile::King, 5, 5);
+
+        board.set_tile(Tile::Black, 4, 4);
+        board.set_tile(Tile::Black, 5, 4);
+        board.set_tile(Tile::Black, 6, 4);
+        board.set_tile(Tile::Black, 7, 4);
+        board.set_tile(Tile::Black, 8, 4);
+        board.set_tile(Tile::Black, 9, 4);
+
+        board.set_tile(Tile::White, 4, 6);
+        board.set_tile(Tile::White, 5, 6);
+        board.set_tile(Tile::White, 6, 6);
+        board.set_tile(Tile::White, 7, 6);
+        board.set_tile(Tile::White, 8, 6);
+        board.set_tile(Tile::White, 9, 6);
+
+        let string_conversion = board.to_string().unwrap();
+        let new_board = Board::from_string(string_conversion).unwrap();
+
+        assert_eq!(board.to_string().unwrap(), new_board.to_string().unwrap());
+
+        assert_eq!(new_board.get_tile(5,5).unwrap(), Tile::King);
+
+        assert_eq!(new_board.get_tile(4,4).unwrap(), Tile::Black);
+        assert_eq!(new_board.get_tile(5,4).unwrap(), Tile::Black);
+        assert_eq!(new_board.get_tile(6,4).unwrap(), Tile::Black);
+        assert_eq!(new_board.get_tile(7,4).unwrap(), Tile::Black);
+        assert_eq!(new_board.get_tile(8,4).unwrap(), Tile::Black);
+        assert_eq!(new_board.get_tile(9,4).unwrap(), Tile::Black);
+
+        assert_eq!(new_board.get_tile(4,6).unwrap(), Tile::White);
+        assert_eq!(new_board.get_tile(5,6).unwrap(), Tile::White);
+        assert_eq!(new_board.get_tile(6,6).unwrap(), Tile::White);
+        assert_eq!(new_board.get_tile(7,6).unwrap(), Tile::White);
+        assert_eq!(new_board.get_tile(8,6).unwrap(), Tile::White);
+        assert_eq!(new_board.get_tile(9,6).unwrap(), Tile::White);
     }
 }

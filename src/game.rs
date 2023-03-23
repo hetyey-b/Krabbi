@@ -86,6 +86,16 @@ impl Game {
         }
     }
 
+    pub fn print_board(&self) {
+        self.board.print_board();
+        println!("");
+        if self.current_player == Color::Black {
+            println!("Next move: Black");
+        } else {
+            println!("Next move: White");
+        }
+    }
+
     pub fn from_string(str: String) -> Result<Game, String> {
         if str.len() != 122 {
             return Err(format!("Incorrect length {} instead of 122", str.len()));
@@ -109,16 +119,6 @@ impl Game {
         })
     }
 
-    pub fn print_board(&self) {
-        self.board.print_board();
-        println!("");
-        if self.current_player == Color::Black {
-            println!("Next move: Black");
-        } else {
-            println!("Next move: White");
-        }
-    }
-
     pub fn to_string(&self) -> String {
         let mut str = String::from("");
         
@@ -128,7 +128,13 @@ impl Game {
             str.push('w');
         }
 
-        format!("{}{}",str,self.board.to_string())
+        let board_string_result = self.board.to_string();
+
+        if board_string_result.is_err() {
+            return "Couldn't format board".to_string();
+        }
+
+        format!("{} {}",board_string_result.unwrap(),str)
     }
 
     pub fn make_move(&mut self, x_from: usize, y_from: usize, x_to: usize, y_to: usize) -> Result<&Board, &str> {

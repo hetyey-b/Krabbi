@@ -38,6 +38,28 @@ fn main() {
     board.print_board();
     println!("");
     println!("Surround win: {}",surround_win(board));
+
+    println!("");
+    println!("CHT-FEN: {}",board.to_string().unwrap());
+        fn u8_to_char(num: u8) -> char {
+            match num {
+                11 => 'B',
+                10 => 'A',
+                9 => '9',
+                8 => '8',
+                7 => '7',
+                6 => '6',
+                5 => '5',
+                4 => '4',
+                3 => '3',
+                2 => '2',
+                1 => '1',
+                _ => '0',
+            }
+        }
+    for i in 0..=11 {
+        println!("{}: {}",i,u8_to_char(i));
+    }
 }
 
 // static DB_NAME: &str = "test.db";
