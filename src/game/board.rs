@@ -7,8 +7,7 @@ pub enum Tile {
     Black,
     White,
     King,
-    ThroneWithKing,
-    ThroneEmpty,
+    Throne,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -25,9 +24,9 @@ pub trait HasColor {
 impl HasColor for Tile {
     fn color(&self) -> Color {
         match &self {
-            Tile::Empty | Tile::Corner | Tile::ThroneEmpty => Color::None,
+            Tile::Empty | Tile::Corner | Tile::Throne => Color::None,
             Tile::Black => Color::Black,
-            Tile::White | Tile::King | Tile::ThroneWithKing => Color::White,
+            Tile::White | Tile::King => Color::White,
         }
     }
 }
@@ -44,8 +43,7 @@ impl Captures for Tile {
             Tile::Black => color == Color::White,
             Tile::White => color == Color::Black,
             Tile::King => color == Color::Black,
-            Tile::ThroneWithKing => color == Color::Black,
-            Tile::ThroneEmpty => true,
+            Tile::Throne => true,
         }
     }
 }
@@ -57,7 +55,7 @@ pub trait CapturesKing {
 impl CapturesKing for Tile {
     fn captures_king(&self) -> bool {
         match &self {
-            Tile::ThroneEmpty | Tile::Black => true,
+            Tile::Throne | Tile::Black => true,
             _ => false
         }
     }
@@ -70,8 +68,8 @@ pub trait Passable {
 impl Passable for Tile {
     fn passable(&self) -> bool {
         match &self {
-            Tile::Empty | Tile::ThroneEmpty => true,
-            Tile::Black | Tile::White | Tile::King | Tile::ThroneWithKing | Tile::Corner => false,
+            Tile::Empty | Tile::Throne => true,
+            Tile::Black | Tile::White | Tile::King | Tile::Corner => false,
         }
     }
 }
@@ -105,7 +103,7 @@ impl Board {
         new_board[10][0] = Tile::Corner;
         new_board[10][10] = Tile::Corner;
         // set the throne
-        new_board[5][5] = Tile::ThroneEmpty;
+        new_board[5][5] = Tile::Throne;
 
         Board { 
             board: new_board,
@@ -115,6 +113,14 @@ impl Board {
 
     pub fn from_string(str: String) -> Result<Board, String> {
         let mut new_board = [[Tile::Empty;11];11];
+
+        // set the corner points
+        new_board[0][0] = Tile::Corner;
+        new_board[0][10] = Tile::Corner;
+        new_board[10][0] = Tile::Corner;
+        new_board[10][10] = Tile::Corner;
+        // set the throne
+        new_board[5][5] = Tile::Throne;
 
         fn char_to_u8(c: char) -> Result<u8, String> {
             match c {
@@ -143,17 +149,16 @@ impl Board {
                     col = 0;
                 },
                 'b' => {
-                    new_board[row][col] = Tile::Black; 
+                    new_board[row][col] = Tile::Black;
+                    col += 1;
                 },
                 'w' => {
                     new_board[row][col] = Tile::White; 
+                    col += 1;
                 },
                 'k' => {
-                    if row == 5 && col == 5 {
-                        new_board[row][col] = Tile::ThroneWithKing; 
-                    } else {
-                        new_board[row][col] = Tile::King; 
-                    }
+                    new_board[row][col] = Tile::King; 
+                    col += 1;
                 },
                 _ => {
                     let u8_result = char_to_u8(c);
@@ -196,7 +201,7 @@ impl Board {
             let mut empty_count: u8 = 0;
             for tile in row.iter() {
                 match tile {
-                    Tile::Empty | Tile::Corner | Tile::ThroneEmpty => {
+                    Tile::Empty | Tile::Corner | Tile::Throne => {
                         empty_count += 1;
                     },
                     _ => {
@@ -207,7 +212,7 @@ impl Board {
                         match tile {
                             Tile::Black => str.push('b'),
                             Tile::White => str.push('w'),
-                            Tile::King | Tile::ThroneWithKing => str.push('k'),
+                            Tile::King => str.push('k'),
                             _ => {return Err(format!("Invalid character {:?}", tile));},
                         };
                     }
@@ -240,10 +245,10 @@ impl Board {
             for j in 0..self.board[i].len() {
                 match self.board[i][j] {
                     Tile::Empty => print!("."),
-                    Tile::Corner | Tile::ThroneEmpty => print!("X"),
+                    Tile::Corner | Tile::Throne => print!("X"),
                     Tile::Black => print!("B"),
                     Tile::White => print!("W"),
-                    Tile::King | Tile::ThroneWithKing => print!("K"),
+                    Tile::King => print!("K"),
                 }
             }
             println!("");

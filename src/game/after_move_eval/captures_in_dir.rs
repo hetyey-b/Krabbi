@@ -49,7 +49,7 @@ pub fn captures_in_dir(board: Board, x: usize, y: usize, x_offset: isize, y_offs
         return false;
     }
 
-    if captured_piece != Tile::King && captured_piece != Tile::ThroneWithKing {
+    if captured_piece != Tile::King {
         return capturing_piece.captures(captured_piece.color())
                 && assisting_piece.captures(captured_piece.color());
     }

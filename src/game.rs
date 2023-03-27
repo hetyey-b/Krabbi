@@ -78,7 +78,7 @@ impl Game {
         for coord in WHITE_COORDS.iter() {
             new_board.set_tile(Tile::White, coord.0, coord.1);
         }
-        new_board.set_tile(Tile::ThroneWithKing, KING_COORD.0, KING_COORD.1);
+        new_board.set_tile(Tile::King, KING_COORD.0, KING_COORD.1);
         
         Game {
             board: new_board,
@@ -149,14 +149,10 @@ impl Game {
             return Err("Not the current player!");
         }
 
-        if to == &Tile::ThroneEmpty {
-            self.board.set_tile(Tile::ThroneWithKing, x_to, y_to);
-        } else {
-            self.board.set_tile(*from, x_to, y_to);
-        }
+        self.board.set_tile(*from, x_to, y_to);
 
-        if from == &Tile::ThroneWithKing {
-            self.board.set_tile(Tile::ThroneEmpty, x_from, y_from);
+        if x_from == 5 && y_from == 5 {
+            self.board.set_tile(Tile::Throne, x_from, y_from);
         } else {
             self.board.set_tile(Tile::Empty, x_from, y_from);
         }

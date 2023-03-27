@@ -118,7 +118,7 @@ mod tests {
     #[test]
     fn test_full_throne_capture() {
         let mut board = Board::new();
-        board.set_tile(Tile::ThroneWithKing, 5, 5);
+        board.set_tile(Tile::King, 5, 5);
         board.set_tile(Tile::White, 6, 5);
         board.set_tile(Tile::Black, 7, 5);
         let new_board = after_move_eval(board, 6, 5);

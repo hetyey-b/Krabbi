@@ -16,11 +16,11 @@ pub fn is_legal_move(board: &Board, x_from: usize, y_from: usize, x_to:usize, y_
     let from = from_result.unwrap();
     let to = to_result.unwrap();
 
-    if from == Tile::Empty || from == Tile::ThroneEmpty || from == Tile::Corner {
+    if from == Tile::Empty || from == Tile::Throne || from == Tile::Corner {
         return false;
     }
 
-    if !to.can_stand_on() && from != Tile::King && from != Tile::ThroneWithKing {
+    if !to.can_stand_on() && from != Tile::King {
         return false;
     }
 
@@ -64,7 +64,7 @@ pub fn get_legal_moves(board: &Board, x: usize, y: usize) -> Result<Vec<(usize,u
     match board.get_tile(x,y) {
         Ok(piece_to_move) => {
             match piece_to_move {
-                Tile::Black | Tile::White | Tile::King | Tile::ThroneWithKing => {
+                Tile::Black | Tile::White | Tile::King => {
                     let mut valid_moves: Vec<(usize,usize)> = Vec::new();
                     
                     // Up 
@@ -77,7 +77,6 @@ pub fn get_legal_moves(board: &Board, x: usize, y: usize) -> Result<Vec<(usize,u
 
                                 if  tile.can_stand_on() 
                                     || piece_to_move == Tile::King 
-                                    || piece_to_move == Tile::ThroneWithKing 
                                 {
                                     valid_moves.push((x,i));
                                 }
@@ -97,7 +96,6 @@ pub fn get_legal_moves(board: &Board, x: usize, y: usize) -> Result<Vec<(usize,u
 
                                 if  tile.can_stand_on() 
                                     || piece_to_move == Tile::King 
-                                    || piece_to_move == Tile::ThroneWithKing 
                                 {
                                     valid_moves.push((i,y));
                                 }
@@ -117,7 +115,6 @@ pub fn get_legal_moves(board: &Board, x: usize, y: usize) -> Result<Vec<(usize,u
 
                                 if  tile.can_stand_on() 
                                     || piece_to_move == Tile::King 
-                                    || piece_to_move == Tile::ThroneWithKing 
                                 {
                                     valid_moves.push((x,i));
                                 }
@@ -137,7 +134,6 @@ pub fn get_legal_moves(board: &Board, x: usize, y: usize) -> Result<Vec<(usize,u
 
                                 if  tile.can_stand_on() 
                                     || piece_to_move == Tile::King 
-                                    || piece_to_move == Tile::ThroneWithKing 
                                 {
                                     valid_moves.push((i,y));
                                 }
