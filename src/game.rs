@@ -205,6 +205,8 @@ mod tests {
 
         for i in 0..=10 {
             for j in 0..=10 {
+                assert!(game.board.get_tile(i,j).is_ok());
+                assert!(new_game.board.get_tile(i,j).is_ok());
                 assert_eq!(game.board.get_tile(i,j).unwrap(), new_game.board.get_tile(i,j).unwrap());
             }
         }
