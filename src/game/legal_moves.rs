@@ -157,6 +157,27 @@ pub fn get_legal_moves(board: &Board, x: usize, y: usize) -> Result<Vec<(usize,u
     }
 }
 
+pub fn get_all_legal_moves(board: &Board) -> Result<Vec<(usize,usize)>, String> {
+    let mut valid_moves: Vec<(usize,usize)> = Vec::new();
+   
+    for i in 0..=10 {
+        for j in 0..=10 {
+            match board.get_tile(i,j) {
+                Ok(Tile::White) | Ok(Tile::Black) | Ok(Tile::King) => {
+                    match get_legal_moves(board,i,j) {
+                        Ok(mut moves) => valid_moves.append(&mut moves),
+                        Err(err) => {return Err(err)},
+                    }
+                },
+                Ok(_) => {},
+                Err(err) => {return Err(err)},
+            };
+        }
+    }
+
+    Ok(valid_moves)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -14,7 +14,7 @@ fn main() {
     game.print_board();
 
     match game.make_move(0,3,1,3) {
-        Ok(result) => {game.print_board()},
+        Ok(_) => {game.print_board()},
         Err(err) => {println!("ERROR: {:?}", err)},
     };
 }
