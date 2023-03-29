@@ -2,7 +2,7 @@ use actix_web::{web, get, post, App, HttpResponse, HttpServer, Responder, Result
 use dotenv::dotenv;
 use game::{Game, board::{Board, Color, Tile}, after_move_eval::after_move_eval};
 use serde::Deserialize;
-use rusqlite::{NO_PARAMS, params, Connection, Result as RusqliteResult};
+use rusqlite::{params, Connection, Result as RusqliteResult};
 
 use crate::game::after_move_eval::{edge_fort::edge_fort, surround_win::surround_win};
 

@@ -66,10 +66,12 @@ const KING_COORD: (usize,usize) = (5,5);
 pub struct Game {
     pub board: Board,
     pub current_player: Color,
+    pub bot_white: bool,
+    pub bot_black: bool,
 }
 
 impl Game {
-    pub fn new() -> Game {
+    pub fn new(bot_player_white: bool, bot_player_black: bool) -> Game {
         let mut new_board = Board::new();
 
         for coord in BLACK_COORDS.iter() {
@@ -83,6 +85,8 @@ impl Game {
         Game {
             board: new_board,
             current_player: Color::Black,
+            bot_white: bot_player_white,
+            bot_black: bot_player_black,
         }
     }
 
@@ -96,54 +100,52 @@ impl Game {
         }
     }
 
-    pub fn from_string(str: String) -> Result<Game, String> {
-        if str.len() != 122 {
-            return Err(format!("Incorrect length {} instead of 122", str.len()));
-        }
+    pub fn from_string(str: String, bot_player_white: bool, bot_player_black: bool) -> Result<Game, String> {
+        todo!();
 
-        let new_current_player: Color;
-
-        if str.starts_with('w') {
-            new_current_player = Color::White;
-        } else if str.starts_with('b') {
-            new_current_player = Color::Black;
-        } else {
-            return Err("Incorrect color marker char!".to_string());
-        }
-
-        let new_board = Board::from_string(str)?;
-
-        Ok(Game {
-            board: new_board,
-            current_player: new_current_player,
-        })
+        // Ok(Game {
+        //     board: new_board,
+        //     current_player: new_current_player,
+        //     bot_white: bot_player_white,
+        //     bot_black: bot_player_black,
+        // })
     }
 
     pub fn to_string(&self) -> String {
-        let mut str = String::from("");
-        
-        if self.current_player == Color::Black {
-            str.push('b');
-        } else {
-            str.push('w');
-        }
+        todo!();
 
-        let board_string_result = self.board.to_string();
+        // let mut str = String::from("");
+        //
+        // if self.current_player == Color::Black {
+        //     str.push('b');
+        // } else {
+        //     str.push('w');
+        // }
+        //
+        // let board_string_result = self.board.to_string();
+        //
+        // if board_string_result.is_err() {
+        //     return "Couldn't format board".to_string();
+        // }
+        //
+        // format!("{} {}",board_string_result.unwrap(),str)
+    }
 
-        if board_string_result.is_err() {
-            return "Couldn't format board".to_string();
-        }
-
-        format!("{} {}",board_string_result.unwrap(),str)
+    pub fn get_winner(&self) -> Color {
+        self.board.winner 
     }
 
     pub fn make_move(&mut self, x_from: usize, y_from: usize, x_to: usize, y_to: usize) -> Result<&Board, &str> {
+        if self.board.winner != Color::None {
+            return Err("Game is over!");
+        }
+
         if !is_legal_move(&self.board, x_from, y_from, x_to, y_to) {
             return Err("Illegal move!");
         }
 
         let from = &self.board.get_tile(x_from, y_from).unwrap();
-        let to = &self.board.get_tile(x_to, y_to).unwrap();
+        // let to = &self.board.get_tile(x_to, y_to).unwrap();
 
         if &from.color() != &self.current_player {
             return Err("Not the current player!");
@@ -163,10 +165,6 @@ impl Game {
             self.current_player = Color::Black;
         } else {
             self.current_player = Color::White;
-        }
-
-        if self.board.winner != Color::None {
-            // TODO
         }
 
         return Ok(&self.board);
