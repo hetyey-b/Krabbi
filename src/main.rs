@@ -9,43 +9,14 @@ use crate::game::after_move_eval::{edge_fort::edge_fort, surround_win::surround_
 pub mod game;
 
 fn main() {
-    let mut board = Board::new();
-    for i in 1..=9 {
-        board.set_tile(Tile::Black, 1, i);
-        board.set_tile(Tile::Black, 9, i);
-    }
-    for i in 2..=8 {
-        board.set_tile(Tile::Black, i, 1);
-        board.set_tile(Tile::Black, i, 9);
-    }
-    board.set_tile(Tile::King, 5, 5);
-    board.set_tile(Tile::White, 4, 4);
-    board.set_tile(Tile::White, 4, 5);
-    board.set_tile(Tile::White, 4, 6);
-    board.set_tile(Tile::White, 5, 4);
-    board.set_tile(Tile::White, 5, 6);
-    board.set_tile(Tile::White, 6, 4);
-    board.set_tile(Tile::White, 6, 5);
-    board.set_tile(Tile::White, 6, 6);
+    let mut game = Game::new(true, false);
 
-    board.set_tile(Tile::White, 0, 1);
+    game.print_board();
 
-    board.set_tile(Tile::Empty, 0, 1);
-    board.set_tile(Tile::Empty, 1, 3);
-
-    board.set_tile(Tile::Black, 2, 3);
-
-    board.print_board();
-    println!("");
-
-    let cht_fen = board.to_string().unwrap();
-    println!("CHT-FEN: {}",cht_fen);
-
-    let new_board = Board::from_string(cht_fen).unwrap();
-
-    println!("");
-    println!("--------------");
-    new_board.print_board();
+    match game.make_move(0,3,1,3) {
+        Ok(result) => {game.print_board()},
+        Err(err) => {println!("ERROR: {:?}", err)},
+    };
 }
 
 // static DB_NAME: &str = "test.db";

@@ -1,6 +1,6 @@
 use std::thread::current;
 
-use self::{legal_moves::is_legal_move, board::Board, board::Color, board::Tile, after_move_eval::after_move_eval};
+use self::{legal_moves::is_legal_move, board::Board, board::Color, board::Tile, after_move_eval::after_move_eval, ai::get_random_move};
 use crate::game::board::HasColor;
 
 pub mod legal_moves;
@@ -182,6 +182,23 @@ impl Game {
             self.current_player = Color::Black;
         } else {
             self.current_player = Color::White;
+        }
+
+        if (self.current_player == Color::White && self.bot_white) ||
+            (self.current_player == Color::Black && self.bot_black){
+            let ai_move_result = get_random_move(self.board, self.current_player);
+
+            if ai_move_result.is_err() {
+                self.board.winner = if self.current_player == Color::Black {
+                    Color::White
+                } else {
+                    Color::Black
+                }; 
+                return Ok(&self.board);
+            }
+
+            let ai_move = ai_move_result.unwrap();
+            return self.make_move(ai_move[0].0, ai_move[0].1, ai_move[1].0, ai_move[1].1);
         }
 
         return Ok(&self.board);
