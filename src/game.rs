@@ -1,3 +1,5 @@
+use std::thread::current;
+
 use self::{legal_moves::is_legal_move, board::Board, board::Color, board::Tile, after_move_eval::after_move_eval};
 use crate::game::board::HasColor;
 
@@ -100,35 +102,50 @@ impl Game {
         }
     }
 
-    pub fn from_string(str: String, bot_player_white: bool, bot_player_black: bool) -> Result<Game, String> {
-        todo!();
+    pub fn from_string(mut str: String, bot_player_white: bool, bot_player_black: bool) -> Result<Game, String> {
+        let new_current_player: Color;
+        match str.pop() {
+            Some('w') => new_current_player = Color::White,
+            Some('b') => new_current_player = Color::Black,
+            _ => return Err("Wrong format: unknown player marker".to_string()),
+        };
 
-        // Ok(Game {
-        //     board: new_board,
-        //     current_player: new_current_player,
-        //     bot_white: bot_player_white,
-        //     bot_black: bot_player_black,
-        // })
+        match str.pop() {
+            Some('/') => {},
+            _ => return Err("Wrong format".to_string()),
+        };
+
+        let new_board_result = Board::from_string(str);
+
+        if new_board_result.is_err() {
+            return Err("Wrong format: Error when loading board".to_string());
+        }
+
+        Ok(Game {
+            board: new_board_result.unwrap(),
+            current_player: new_current_player,
+            bot_white: bot_player_white,
+            bot_black: bot_player_black,
+        })
     }
 
-    pub fn to_string(&self) -> String {
-        todo!();
+    pub fn to_string(&self) -> Result<String,String> {
+        let str_result = self.board.to_string();
 
-        // let mut str = String::from("");
-        //
-        // if self.current_player == Color::Black {
-        //     str.push('b');
-        // } else {
-        //     str.push('w');
-        // }
-        //
-        // let board_string_result = self.board.to_string();
-        //
-        // if board_string_result.is_err() {
-        //     return "Couldn't format board".to_string();
-        // }
-        //
-        // format!("{} {}",board_string_result.unwrap(),str)
+        if str_result.is_err() {
+            return Err("Couldn't format board".to_string());
+        }
+
+        let mut str = str_result.unwrap();
+        str.push('/');
+
+        if self.current_player == Color::Black {
+            str.push('b');
+        } else {
+            str.push('w');
+        }
+
+        return Ok(str);
     }
 
     pub fn get_winner(&self) -> Color {
@@ -168,5 +185,28 @@ impl Game {
         }
 
         return Ok(&self.board);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_game_string_conversion() {
+        let game = Game::new(false, false);
+
+        let string_conversion = game.to_string().unwrap();
+
+        let new_game = Game::from_string(string_conversion, false, false).unwrap();
+
+        assert_eq!(game.get_winner(), new_game.get_winner());
+        assert_eq!(game.current_player, new_game.current_player);
+
+        for i in 0..=10 {
+            for j in 0..=10 {
+                assert_eq!(game.board.get_tile(i,j).unwrap(), new_game.board.get_tile(i,j).unwrap());
+            }
+        }
     }
 }
