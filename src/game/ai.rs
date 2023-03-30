@@ -1,4 +1,4 @@
-use super::{board::{Board, Color, HasColor, Tile}, legal_moves::{get_legal_moves, get_all_legal_moves}};
+use super::{board::{Board, Color, HasColor, Tile}, legal_moves::{get_legal_moves, get_all_legal_moves, self}, after_move_eval::after_move_eval};
 use rand::seq::SliceRandom; 
 use std::cmp;
 
@@ -32,16 +32,41 @@ pub fn get_random_move(board: Board, color: Color) -> Result<[(usize,usize);2], 
     Ok(*all_legal_moves.choose(&mut rand::thread_rng()).unwrap())
 }
 
+fn get_all_child_boards(board: &Board, player: Color) -> Vec<Board> {
+    let mut result: Vec<Board> = Vec::new();
+
+    for i in 0..=10 {
+        for j in 0..=10 {
+            let current_tile = board.get_tile(i,j).unwrap();
+            if current_tile.color() != player {
+                continue;
+            }
+
+            let moves = get_legal_moves(board, i, j).unwrap();
+
+            for current_move in moves.iter() {
+                let mut new_board = board.clone();
+                new_board.set_tile(Tile::Empty, i, j);
+                new_board.set_tile(current_tile, current_move.0, current_move.1);
+                new_board = after_move_eval(new_board, current_move.0, current_move.1);
+                result.push(new_board);
+            }
+        }
+    }
+
+    result
+}
+
+// initially, alpha should be f32::MIN, and beta should be f32::MAX
 fn minimax_alpha_beta(state: &Board, depth: i32, mut alpha: f32, mut beta: f32, max_player: bool) -> f32 {
     if depth == 0 {
         return evaluate(state);
     }
 
     if max_player {
-        let mut max_val = std::f32::MIN;
+        let mut max_val = f32::MIN;
 
-        // TODO: sub-state generation
-        for child_state in get_all_legal_moves(&state).expect("Get all legal moves error") {
+        for child_state in get_all_child_boards(&state, Color::White) {
             let child_val = minimax_alpha_beta(&child_state, depth-1, alpha, beta, false);
 
             max_val = f32::max(max_val,child_val);
@@ -54,15 +79,31 @@ fn minimax_alpha_beta(state: &Board, depth: i32, mut alpha: f32, mut beta: f32, 
 
         return max_val;
     } else {
-        let mut min_val = std::f32::MAX;
+        let mut min_val = f32::MAX;
 
-        for 
-        todo!()
+        for child_state in get_all_child_boards(&state, Color::Black) {
+            let child_val = minimax_alpha_beta(&child_state, depth-1, alpha, beta, true);
+
+            min_val = f32::min(min_val, child_val);
+            beta = f32::min(beta, min_val);
+            if beta <= alpha {
+                break;
+            }
+        }
+
+        return min_val;
     }
 }
 
 fn evaluate(state: &Board) -> f32 {
     let mut result: f32 = 0f32;
+    
+    if state.winner == Color::White {
+        return f32::MAX;
+    }
+    if state.winner == Color::Black {
+        return f32::MIN;
+    }
 
     let mut piece_difference: f32 = 0f32;
     let piece_difference_weight = 1f32;
@@ -76,7 +117,6 @@ fn evaluate(state: &Board) -> f32 {
         }
     }
     result += piece_difference * piece_difference_weight;
-
 
     result
 }
