@@ -11,12 +11,8 @@ pub mod game;
 fn main() {
     let mut game = Game::new(true, false);
 
+    game.make_move(0,4,3,4);
     game.print_board();
-
-    match game.make_move(0,3,1,3) {
-        Ok(_) => {game.print_board()},
-        Err(err) => {println!("ERROR: {:?}", err)},
-    };
 }
 
 // static DB_NAME: &str = "test.db";
