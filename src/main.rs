@@ -2,7 +2,7 @@ use actix_web::{web, get, post, App, HttpResponse, HttpServer, Responder, Result
 use dotenv::dotenv;
 use game::{Game, board::{Board, Color, Tile}, after_move_eval::after_move_eval};
 use serde::{Deserialize, Serialize};
-use rusqlite::{params, Connection, Result as RusqliteResult};
+use rusqlite::{params, Connection, Result as RusqliteResult, Statement};
 
 use crate::game::after_move_eval::{edge_fort::edge_fort, surround_win::surround_win};
 
@@ -23,6 +23,16 @@ static DB_NAME: &str = "test.db";
 struct NewGameInfo {
     player_name: String,
     bot_black: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+struct MakeMoveInfo {
+    player_name: String,
+    game_id: String,
+    x_from: usize,
+    y_from: usize,
+    x_to: usize,
+    y_to: usize,
 }
 
 #[get("/")]
@@ -46,6 +56,51 @@ async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
     } else {
         Err(actix_web::error::ErrorInternalServerError("Could not create new game!"))
     }
+}
+
+#[post("/make_move")]
+async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<String> {
+    let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
+
+    if make_move_info.x_from > 10 
+        || make_move_info.y_from > 10
+        || make_move_info.x_to > 10
+        || make_move_info.y_to > 10 {
+        return Err(actix_web::error::ErrorInternalServerError("Incorrect index!"));
+    }
+
+    let statement_result = conn.prepare("SELECT * FROM games WHERE id=1? player_name=2?");
+
+    if statement_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("SQL error"));
+    }
+
+    let mut statement = statement_result.unwrap();
+
+    let rows_result = statement.query(rusqlite::params![make_move_info.game_id, make_move_info.player_name]);
+
+    if rows_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("Database query error"));
+    }
+
+    let mut rows = rows_result.unwrap();
+
+    let player_name: String;
+    let chfen: String;
+
+    if let Some(row) = rows.next().transpose() {
+        if row.is_err() {
+            return Err(actix_web::error::ErrorInternalServerError("No game found"));
+        }
+        let row_data = row.unwrap();
+        player_name = row_data.get("player_name").unwrap();
+        chfen = row_data.get("game_state").unwrap();
+    } else {
+        return Err(actix_web::error::ErrorInternalServerError("No game found"));
+    }
+
+    // let game: Game = Game::from_string(chfen, bot_player_white, bot_player_black);
+    todo!()
 }
 
 #[actix_web::main]
@@ -76,6 +131,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(hello)
             .service(new_game)
+            .service(make_move)
     })
         .bind((web_server_ip, web_server_port))?
         .run()
