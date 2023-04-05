@@ -3,6 +3,7 @@ use dotenv::dotenv;
 use game::{Game, board::{Board, Color, Tile}, after_move_eval::after_move_eval};
 use serde::{Deserialize, Serialize};
 use rusqlite::{params, Connection, Result as RusqliteResult, Statement};
+use crate::game::legal_moves::get_legal_moves;
 
 use crate::game::after_move_eval::{edge_fort::edge_fort, surround_win::surround_win};
 
@@ -33,6 +34,14 @@ struct MakeMoveInfo {
     y_from: usize,
     x_to: usize,
     y_to: usize,
+}
+
+#[derive(Deserialize, Serialize)]
+struct GetLegalMovesInfo {
+    player_name: String,
+    game_id: String,
+    x: usize,
+    y: usize,
 }
 
 #[get("/")]
@@ -109,6 +118,60 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<String> {
         Ok(_) => Ok(game.to_string().unwrap()),
         Err(err) => Err(actix_web::error::ErrorInternalServerError(format!("Invalid move: {}", err))),
     }
+}
+
+#[post("/legal_moves")]
+async fn legal_moves(legal_moves_info: web::Json<GetLegalMovesInfo>) -> Result<String> {
+    let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
+
+    if legal_moves_info.x > 10 
+        || legal_moves_info.y > 10 {
+        return Err(actix_web::error::ErrorInternalServerError("Incorrect index!"));
+    }
+
+    let statement_result = conn.prepare("SELECT * FROM games WHERE id=1? player_name=2?");
+
+    if statement_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("SQL error"));
+    }
+
+    let mut statement = statement_result.unwrap();
+
+    let rows_result = statement.query(rusqlite::params![legal_moves_info.game_id, legal_moves_info.player_name]);
+
+    if rows_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("Database query error"));
+    }
+
+    let mut rows = rows_result.unwrap();
+
+    let chfen: String;
+
+    if let Some(row) = rows.next().transpose() {
+        if row.is_err() {
+            return Err(actix_web::error::ErrorInternalServerError("No game found"));
+        }
+        let row_data = row.unwrap();
+        chfen = row_data.get("game_state").unwrap();
+
+    } else {
+        return Err(actix_web::error::ErrorInternalServerError("No game found"));
+    }
+
+    let game_result = Game::from_string(chfen);
+
+    if game_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("Error parsing FEN"));
+    }
+
+    let game = game_result.unwrap();
+    let legal_moves_result = get_legal_moves(&game.board, legal_moves_info.x, legal_moves_info.y);
+
+    if legal_moves_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("Error getting legal moves"));
+    }
+
+    return Ok(format!("{:?}",legal_moves_result.unwrap()))
 }
 
 #[actix_web::main]
