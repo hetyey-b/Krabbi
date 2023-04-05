@@ -102,13 +102,27 @@ impl Game {
         }
     }
 
-    pub fn from_string(mut str: String, bot_player_white: bool, bot_player_black: bool) -> Result<Game, String> {
+    pub fn from_string(mut str: String) -> Result<Game, String> {
         let new_current_player: Color;
+        let bot_player_white: bool;
+        let bot_player_black: bool;
         match str.pop() {
             Some('w') => new_current_player = Color::White,
             Some('b') => new_current_player = Color::Black,
             _ => return Err("Wrong format: unknown player marker".to_string()),
         };
+
+        match str.pop() {
+            Some('p') => bot_player_black = false,
+            Some('b') => bot_player_black = true,
+            _ => return Err("Wrong format: unknown black player bot marker".to_string()),
+        }
+
+        match str.pop() {
+            Some('p') => bot_player_white = false,
+            Some('b') => bot_player_white = true,
+            _ => return Err("Wrong format: unknown white player bot marker".to_string()),
+        }
 
         match str.pop() {
             Some('/') => {},
@@ -138,6 +152,18 @@ impl Game {
 
         let mut str = str_result.unwrap();
         str.push('/');
+
+        if self.bot_white {
+            str.push('b');
+        } else {
+            str.push('p');
+        }
+
+        if self.bot_black {
+            str.push('b');
+        } else {
+            str.push('p');
+        }
 
         if self.current_player == Color::Black {
             str.push('b');
@@ -211,14 +237,16 @@ mod tests {
 
     #[test]
     fn test_game_string_conversion() {
-        let game = Game::new(false, false);
+        let game = Game::new(false, true);
 
         let string_conversion = game.to_string().unwrap();
 
-        let new_game = Game::from_string(string_conversion, false, false).unwrap();
+        let new_game = Game::from_string(string_conversion).unwrap();
 
         assert_eq!(game.get_winner(), new_game.get_winner());
         assert_eq!(game.current_player, new_game.current_player);
+        assert_eq!(game.bot_black, new_game.bot_black);
+        assert_eq!(game.bot_white, new_game.bot_white);
 
         for i in 0..=10 {
             for j in 0..=10 {

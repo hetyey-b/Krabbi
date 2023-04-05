@@ -85,7 +85,6 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<String> {
 
     let mut rows = rows_result.unwrap();
 
-    let player_name: String;
     let chfen: String;
 
     if let Some(row) = rows.next().transpose() {
@@ -93,14 +92,23 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<String> {
             return Err(actix_web::error::ErrorInternalServerError("No game found"));
         }
         let row_data = row.unwrap();
-        player_name = row_data.get("player_name").unwrap();
         chfen = row_data.get("game_state").unwrap();
+
     } else {
         return Err(actix_web::error::ErrorInternalServerError("No game found"));
     }
 
-    // let game: Game = Game::from_string(chfen, bot_player_white, bot_player_black);
-    todo!()
+    let game_result = Game::from_string(chfen);
+
+    if game_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("Error parsing FEN"));
+    }
+
+    let mut game = game_result.unwrap();
+    match game.make_move(make_move_info.x_from, make_move_info.y_from, make_move_info.x_to, make_move_info.y_to) {
+        Ok(_) => Ok(game.to_string().unwrap()),
+        Err(err) => Err(actix_web::error::ErrorInternalServerError(format!("Invalid move: {}", err))),
+    }
 }
 
 #[actix_web::main]
