@@ -4,6 +4,7 @@ use game::{Game, board::{Board, Color, Tile}, after_move_eval::after_move_eval};
 use serde::{Deserialize, Serialize};
 use rusqlite::{params, Connection, Result as RusqliteResult, Statement};
 use crate::game::legal_moves::get_legal_moves;
+use actix_web::error::ErrorInternalServerError;
 
 use crate::game::after_move_eval::{edge_fort::edge_fort, surround_win::surround_win};
 
@@ -23,6 +24,7 @@ static DB_NAME: &str = "test.db";
 #[derive(Deserialize, Serialize)]
 struct NewGameInfo {
     player_name: String,
+    bot_white: bool,
     bot_black: bool,
 }
 
@@ -44,6 +46,11 @@ struct GetLegalMovesInfo {
     y: usize,
 }
 
+#[derive(Deserialize, Serialize)]
+struct GetGamesInfo {
+    player_name: String,
+}
+
 #[get("/")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello world!\n")
@@ -52,16 +59,17 @@ async fn hello() -> impl Responder {
 #[post("/new_game")]
 async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
     let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
-    let new_game: Game = Game::new(!new_game_info.bot_black, new_game_info.bot_black);
+    let new_game: Game = Game::new(new_game_info.bot_white, new_game_info.bot_black);
     let player_name = &new_game_info.player_name;
+    let new_game_id = Uuid::new_v4().to_string(); 
 
     let result = conn.execute(
         "INSERT INTO games (id, game_state, player_name) VALUES (?1, ?2, ?3)",
-        [Uuid::new_v4().to_string(), new_game.to_string().unwrap(), player_name.to_string()],
+        [&new_game_id, &new_game.to_string().unwrap(), &player_name.to_string()],
     );
     
     if result.is_ok() {
-        Ok(format!("Welcome {}!", new_game_info.player_name))
+        Ok(new_game_id)
     } else {
         Err(actix_web::error::ErrorInternalServerError("Could not create new game!"))
     }
@@ -78,7 +86,7 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<String> {
         return Err(actix_web::error::ErrorInternalServerError("Incorrect index!"));
     }
 
-    let statement_result = conn.prepare("SELECT * FROM games WHERE id=1? player_name=2?");
+    let statement_result = conn.prepare("SELECT * FROM games WHERE id=?1 AND player_name=?2");
 
     if statement_result.is_err() {
         return Err(actix_web::error::ErrorInternalServerError("SQL error"));
@@ -115,7 +123,24 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<String> {
 
     let mut game = game_result.unwrap();
     match game.make_move(make_move_info.x_from, make_move_info.y_from, make_move_info.x_to, make_move_info.y_to) {
-        Ok(_) => Ok(game.to_string().unwrap()),
+        Ok(_) => {
+            let update_result = conn.prepare("UPDATE games SET game_state=?1 WHERE id=?2 AND player_name=?3");
+            let new_fen = game.to_string().unwrap();
+
+            if update_result.is_err() {
+                return Err(actix_web::error::ErrorInternalServerError("SQL error"));
+            }
+
+            let mut update = update_result.unwrap();
+
+            let update_query_result = update.execute(rusqlite::params![new_fen, make_move_info.game_id, make_move_info.player_name]);
+
+            if update_query_result.is_err() {
+                return Err(actix_web::error::ErrorInternalServerError("Unable to update database!".to_string()));
+            }
+
+            Ok(new_fen)
+        },
         Err(err) => Err(actix_web::error::ErrorInternalServerError(format!("Invalid move: {}", err))),
     }
 }
@@ -129,7 +154,7 @@ async fn legal_moves(legal_moves_info: web::Json<GetLegalMovesInfo>) -> Result<S
         return Err(actix_web::error::ErrorInternalServerError("Incorrect index!"));
     }
 
-    let statement_result = conn.prepare("SELECT * FROM games WHERE id=1? player_name=2?");
+    let statement_result = conn.prepare("SELECT * FROM games WHERE id=?1 AND player_name=?2");
 
     if statement_result.is_err() {
         return Err(actix_web::error::ErrorInternalServerError("SQL error"));
@@ -174,6 +199,31 @@ async fn legal_moves(legal_moves_info: web::Json<GetLegalMovesInfo>) -> Result<S
     return Ok(format!("{:?}",legal_moves_result.unwrap()))
 }
 
+#[post("/get_games")]
+async fn get_games(legal_moves_info: web::Json<GetGamesInfo>) -> Result<HttpResponse, actix_web::error::Error> {
+    let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
+
+    let statement_result = conn.prepare("SELECT id FROM games WHERE player_name=?1");
+
+    if statement_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("SQL error"));
+    }
+
+    let mut statement = statement_result.unwrap();
+
+    let rows_result = statement.query_map(rusqlite::params![legal_moves_info.player_name], |row| {
+        row.get::<usize, String>(0)
+    });
+
+    if rows_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("Database query error"));
+    }
+
+    let rows: Vec<String> = rows_result.unwrap().map(|r| r.unwrap()).collect();
+
+    Ok(HttpResponse::Ok().json(rows))
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok(); // This line loads the environment variables
@@ -203,6 +253,8 @@ async fn main() -> std::io::Result<()> {
             .service(hello)
             .service(new_game)
             .service(make_move)
+            .service(legal_moves)
+            .service(get_games)
     })
         .bind((web_server_ip, web_server_port))?
         .run()
