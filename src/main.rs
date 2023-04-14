@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use rusqlite::{params, Connection, Result as RusqliteResult, Statement};
 use crate::game::legal_moves::get_legal_moves;
 use actix_web::error::ErrorInternalServerError;
+use actix_cors::Cors;
 
 use crate::game::after_move_eval::{edge_fort::edge_fort, surround_win::surround_win};
 
@@ -250,6 +251,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
+            .wrap(Cors::permissive())
             .service(hello)
             .service(new_game)
             .service(make_move)
