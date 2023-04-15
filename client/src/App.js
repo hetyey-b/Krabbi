@@ -8,12 +8,14 @@ const BACKEND_URL = `${process.env.REACT_APP_SERVER_URL}:${process.env.REACT_APP
 function App() {
     const [playerWhiteBot, setPlayerWhiteBot] = React.useState(false);
     const [playerBlackBot, setPlayerBlackBot] = React.useState(false);
-    const [playerName, setPlayerName] = React.useState("");
+    const [playerName, setPlayerName] = React.useState(localStorage.getItem("playerName") || "");
 
     const handleStartGameOnClick = async () => {
         if (!playerName) {
             return;
         }
+
+        localStorage.setItem("playerName", playerName);
         
         try {
             let response = await axios({
@@ -30,7 +32,7 @@ function App() {
                 },
             });
 
-            debugger;
+            localStorage.setItem("currentGameId", response.data);
         } catch (err) {
             console.error(err);
         }
@@ -43,7 +45,7 @@ function App() {
     return (
         <div className="mx-4 my-2 grid grid-cols-2 gap-4">
             <div className="col-span-2">
-                <label for="playerName" className="block mb-2 text-sm font-medium text-white">Name</label>
+                <label htmlFor="playerName" className="block mb-2 text-sm font-medium text-white">Name</label>
                 <input 
                     type="text" 
                     id="playerName" 
