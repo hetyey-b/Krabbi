@@ -9,6 +9,7 @@ function App() {
     const [playerWhiteBot, setPlayerWhiteBot] = React.useState(false);
     const [playerBlackBot, setPlayerBlackBot] = React.useState(false);
     const [playerName, setPlayerName] = React.useState(localStorage.getItem("playerName") || "");
+    const [gameId, setGameId] = React.useState(localStorage.getItem("gameId") || "");
 
     const handleStartGameOnClick = async () => {
         if (!playerName) {
@@ -37,14 +38,31 @@ function App() {
                 },
             });
 
-            localStorage.setItem("currentGameId", response.data);
+            setGameId(response.data);
         } catch (err) {
             console.error(err);
         }
     }
 
+    React.useEffect(() => {
+        if (!gameId) {
+            return;
+        }
+        localStorage.setItem("gameId", gameId);
+    }, [gameId])
+
     const handlePlayerNameInputOnChange = (e) => {
         setPlayerName(e.target.value);
+    }
+
+    if (gameId) {
+        return (
+            <Board
+                playerName={playerName}
+                gameId={gameId}
+                setGameId={setGameId}
+            />
+        )
     }
 
     return (

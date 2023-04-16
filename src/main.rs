@@ -52,6 +52,11 @@ struct GetGamesInfo {
     player_name: String,
 }
 
+#[derive(Deserialize, Serialize)]
+struct GetBoardInfo {
+    game_id: String,
+}
+
 #[get("/")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello world!\n")
@@ -230,6 +235,41 @@ async fn get_games(legal_moves_info: web::Json<GetGamesInfo>) -> Result<HttpResp
     Ok(HttpResponse::Ok().json(rows))
 }
 
+#[post("/get_board")]
+async fn get_board(get_board_info: web::Json<GetBoardInfo>) -> Result<HttpResponse, actix_web::error::Error> {
+    let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
+
+    let statement_result = conn.prepare("SELECT * FROM games WHERE id=?1");
+
+    if statement_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("SQL error"));
+    }
+
+    let mut statement = statement_result.unwrap();
+
+    let rows_result = statement.query(rusqlite::params![get_board_info.game_id]);
+
+    if rows_result.is_err() {
+        return Err(actix_web::error::ErrorInternalServerError("Database query error"));
+    }
+
+    let mut rows = rows_result.unwrap();
+
+    let chfen: String;
+
+    if let Some(row) = rows.next().transpose() {
+        if row.is_err() {
+            return Err(actix_web::error::ErrorInternalServerError("No game found"));
+        }
+        let row_data = row.unwrap();
+        chfen = row_data.get("game_state").unwrap();
+    } else {
+        return Err(actix_web::error::ErrorInternalServerError("No game found"));
+    }
+
+    Ok(HttpResponse::Ok().body(chfen))
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok(); // This line loads the environment variables
@@ -262,6 +302,7 @@ async fn main() -> std::io::Result<()> {
             .service(make_move)
             .service(legal_moves)
             .service(get_games)
+            .service(get_board)
     })
         .bind((web_server_ip, web_server_port))?
         .run()
