@@ -15,6 +15,8 @@ const BACKEND_URL = `${process.env.REACT_APP_SERVER_URL}:${process.env.REACT_APP
 const Board = ({playerName, gameId, setGameId}) => {
     const [board, setBoard] = React.useState([[]]);
     const [selectedTiles, setSelectedTiles] = React.useState([]);
+    const [selected, setSelected] = React.useState("");
+    const [currentPlayer, setCurrentPlayer] = React.useState("");
 
     const tile_to_img = (tile, x, y) => {
         if (selectedTiles.includes(`${x}, ${y}`)) {
@@ -57,6 +59,12 @@ const Board = ({playerName, gameId, setGameId}) => {
                 },
             });
 
+            if (response.data[response.data.length - 1] === 'b') {
+                setCurrentPlayer('B');
+            } else {
+                setCurrentPlayer('W');
+            }
+
             setBoard(boardFromCHFEN(response.data));
         };
 
@@ -65,10 +73,36 @@ const Board = ({playerName, gameId, setGameId}) => {
 
     const handleTileOnClick = async (x,y) => {
         setSelectedTiles([]);
+        setSelected("");
+
+        let selectedX = parseInt(selected.split(', ')[0]);
+        let selectedY = parseInt(selected.split(', ')[1]);
 
         if (selectedTiles.includes(`${x}, ${y}`)) {
-            // TODO: make move
-            alert(`Clicked on selected tile ${x}, ${y}`);
+            let response = await axios({
+                method: "POST",
+                url: `${BACKEND_URL}/make_move`,
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json;charset=UTF-8'
+                },
+                data: {
+                    player_name: playerName,
+                    game_id: gameId,
+                    x_from: selectedX,
+                    y_from: selectedY,
+                    x_to: x,
+                    y_to: y,
+                } 
+            })
+            setBoard(boardFromCHFEN(response.data));
+
+            if (response.data[response.data.length - 1] === 'b') {
+                setCurrentPlayer('B');
+            } else {
+                setCurrentPlayer('W');
+            }
+
             return;
         }
         
@@ -92,6 +126,7 @@ const Board = ({playerName, gameId, setGameId}) => {
         });
 
         let filtered_response = response.data.slice(2,-2).split('), (');
+        setSelected(`${x}, ${y}`)
         setSelectedTiles(filtered_response);
     }
 
@@ -124,6 +159,10 @@ const Board = ({playerName, gameId, setGameId}) => {
                     }) 
                 }
                 </div>
+            </div>
+
+            <div className="mx-4 my-2 text-center text-white font-bold">
+                Current player: {currentPlayer === 'W' ? <span>White</span> : <span className="text-black">Black</span>}
             </div>
         </div>
     )
