@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 
+import selected from '../images/PH_selected.png';
 import empty from '../images/PH_empty.png';
 import black from '../images/PH_black.png';
 import corner from '../images/PH_corner.png';
@@ -11,30 +12,36 @@ import {boardFromCHFEN} from '../util/boardFromCHFEN';
 
 const BACKEND_URL = `${process.env.REACT_APP_SERVER_URL}:${process.env.REACT_APP_SERVER_PORT}`;
 
-const tile_to_img = (tile) => {
-    switch (tile) {
-        case 'x':
-            return corner;
-            break;
-        case '_':
-            return empty;
-            break;
-        case 'w':
-            return white;
-            break;
-        case 'k':
-            return king;
-            break;
-        case 'b':
-            return black;
-            break;
-        default:
-            return empty;
-            break;
-    }
-}
 const Board = ({playerName, gameId, setGameId}) => {
     const [board, setBoard] = React.useState([[]]);
+    const [selectedTiles, setSelectedTiles] = React.useState([]);
+
+    const tile_to_img = (tile, x, y) => {
+        if (selectedTiles.includes(`${x}, ${y}`)) {
+            return selected;
+        }
+
+        switch (tile) {
+            case 'x':
+                return corner;
+                break;
+            case '_':
+                return empty;
+                break;
+            case 'w':
+                return white;
+                break;
+            case 'k':
+                return king;
+                break;
+            case 'b':
+                return black;
+                break;
+            default:
+                return empty;
+                break;
+        }
+    }
 
     React.useEffect(() => {
         const get_board = async () => {
@@ -56,8 +63,36 @@ const Board = ({playerName, gameId, setGameId}) => {
         get_board();
     }, []);
 
-    const handleTileOnClick = (x,y) => {
-        alert(`Clicked on tile ${x}, ${y}`);
+    const handleTileOnClick = async (x,y) => {
+        setSelectedTiles([]);
+
+        if (selectedTiles.includes(`${x}, ${y}`)) {
+            // TODO: make move
+            alert(`Clicked on selected tile ${x}, ${y}`);
+            return;
+        }
+        
+        if (board[x][y] === '_' || board[x][y] === 'x') {
+            return;
+        }
+
+        let response = await axios({
+            method: "POST",
+            url: `${BACKEND_URL}/legal_moves`, 
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json;charset=UTF-8'
+            },
+            data: {
+                player_name: playerName,
+                game_id: gameId,
+                x: x,
+                y: y,
+            },
+        });
+
+        let filtered_response = response.data.slice(2,-2).split('), (');
+        setSelectedTiles(filtered_response);
     }
 
     return(
@@ -82,7 +117,7 @@ const Board = ({playerName, gameId, setGameId}) => {
                             <img 
                                 key={`${tile}-${tile}-${x}-${y}`}
                                 className="mr-0 ml-0 h-[30px] w-[30px] m-0"
-                                src={tile_to_img(tile)}
+                                src={tile_to_img(tile,x,y)}
                                 onClick={() => handleTileOnClick(x,y)}
                             />
                         );
