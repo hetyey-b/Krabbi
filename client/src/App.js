@@ -15,6 +15,11 @@ function App() {
             return;
         }
 
+        if (playerWhiteBot && playerBlackBot) {
+            alert("Cannot create a game without a human player!");
+            return;
+        }
+        
         localStorage.setItem("playerName", playerName);
         
         try {
@@ -57,13 +62,23 @@ function App() {
             </div>
             <button 
                 className="bg-slate-300 hover:bg-slate-100 text-black font-bold py-2 px-4 rounded"
-                onClick={() => {setPlayerWhiteBot(true)}}
+                onClick={() => {
+                    if (playerBlackBot) {
+                        setPlayerBlackBot(false);
+                    }
+                    setPlayerWhiteBot(true);
+                }}
             >
                 Bot{playerWhiteBot ? " ✓" : ""}
             </button>
             <button 
                 className="bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded"
-                onClick={() => {setPlayerBlackBot(true)}}
+                onClick={() => {
+                    if (playerWhiteBot) {
+                        setPlayerWhiteBot(false);
+                    }
+                    setPlayerBlackBot(true);
+                }}
             >
                 Bot{playerBlackBot ? " ✓" : ""}
             </button>

@@ -60,6 +60,11 @@ async fn hello() -> impl Responder {
 #[post("/new_game")]
 async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
     let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
+
+    if new_game_info.bot_white && new_game_info.bot_black {
+        return Err(actix_web::error::ErrorInternalServerError("Cannot create a game without a human player!"));
+    }
+
     let new_game: Game = Game::new(new_game_info.bot_white, new_game_info.bot_black);
     let player_name = &new_game_info.player_name;
     let new_game_id = Uuid::new_v4().to_string(); 
