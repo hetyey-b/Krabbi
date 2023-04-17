@@ -14,10 +14,11 @@ use uuid::Uuid;
 pub mod game;
 
 // fn main() {
-//     let mut game = Game::new(true, false);
-//
-//     game.make_move(0,4,3,4);
-//     game.print_board();
+//     let mut board: Board = Board::new();
+//     board.set_tile(Tile::King, 0, 5);
+//     board.print_board();
+//     let legal_moves = get_legal_moves(&board, 0, 5).unwrap();
+//     println!("legal moves: {:?}", legal_moves);
 // }
 
 static DB_NAME: &str = "test.db";
@@ -78,7 +79,7 @@ async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
         "INSERT INTO games (id, game_state, player_name) VALUES (?1, ?2, ?3)",
         [&new_game_id, &new_game.to_string().unwrap(), &player_name.to_string()],
     );
-    
+   
     if result.is_ok() {
         Ok(new_game_id)
     } else {

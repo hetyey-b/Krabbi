@@ -280,6 +280,16 @@ mod tests {
     }
 
     #[test]
+    fn test_king_corner_move_legal() {
+        let mut board: Board = Board::new();
+        board.set_tile(Tile::King, 0, 5);
+        let legal_moves = get_legal_moves(&board, 0, 5).unwrap();
+
+        assert!(legal_moves.contains(&(0,0)));
+        assert!(legal_moves.contains(&(0,10)));
+    }
+
+    #[test]
     fn test_legal_move_wrong_index() {
         let mut board: Board = Board::new();
         board.set_tile(Tile::White, 4, 4);

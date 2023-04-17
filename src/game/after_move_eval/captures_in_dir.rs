@@ -54,6 +54,12 @@ pub fn captures_in_dir(board: Board, x: usize, y: usize, x_offset: isize, y_offs
                 && assisting_piece.captures(captured_piece.color());
     }
 
+    if captured_x <= 0 || captured_x >= 10 ||
+        captured_y <= 0 || captured_x >= 10 {
+        // if the king is on the edge, it cannot be captured 
+        // (by traditional capture)
+        return false;
+    }
     // captured piece is a King, we need to check the other assisting tiles
     let king_capture_assisting_up_result = board.get_tile(captured_x - 1, captured_y);
     let king_capture_assisting_ri_result = board.get_tile(captured_x , captured_y + 1);

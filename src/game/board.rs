@@ -68,8 +68,8 @@ pub trait Passable {
 impl Passable for Tile {
     fn passable(&self) -> bool {
         match &self {
-            Tile::Empty | Tile::Throne => true,
-            Tile::Black | Tile::White | Tile::King | Tile::Corner => false,
+            Tile::Empty | Tile::Throne | Tile::Corner => true,
+            Tile::Black | Tile::White | Tile::King => false,
         }
     }
 }

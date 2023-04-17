@@ -109,6 +109,14 @@ const Board = ({playerName, gameId, setGameId}) => {
         if (board[x][y] === '_' || board[x][y] === 'x') {
             return;
         }
+        
+        if (board[x][y] === 'b' && currentPlayer === 'W') {
+            return;
+        }
+
+        if ((board[x][y] === 'y' || board[x][y] === 'w') && currentPlayer === 'B') {
+            return;
+        }
 
         let response = await axios({
             method: "POST",
@@ -125,6 +133,9 @@ const Board = ({playerName, gameId, setGameId}) => {
             },
         });
 
+        if (typeof response.data !== "string") {
+            return;
+        }
         let filtered_response = response.data.slice(2,-2).split('), (');
         setSelected(`${x}, ${y}`)
         setSelectedTiles(filtered_response);
