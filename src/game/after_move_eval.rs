@@ -84,6 +84,20 @@ pub fn after_move_eval(board: Board, x: usize, y: usize) -> Board {
         }
     }
     
+    let mut king_on_board: bool = false;
+    'outer: for i in 0..=10 {
+        for j in 0..=10 {
+            if new_board.get_tile(i, j).unwrap() == Tile::King {
+                king_on_board = true;
+                break 'outer;
+            }
+        }
+    }
+
+    if !king_on_board {
+        new_board.winner = Color::Black;
+    }
+
     new_board
 }
 

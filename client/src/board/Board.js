@@ -17,6 +17,7 @@ const Board = ({playerName, gameId, setGameId}) => {
     const [selectedTiles, setSelectedTiles] = React.useState([]);
     const [selected, setSelected] = React.useState("");
     const [currentPlayer, setCurrentPlayer] = React.useState("");
+    const [winner, setWinner] = React.useState("x");
 
     const tile_to_img = (tile, x, y) => {
         if (selectedTiles.includes(`${x}, ${y}`)) {
@@ -59,6 +60,11 @@ const Board = ({playerName, gameId, setGameId}) => {
                 },
             });
 
+            if (response.status !== 200) {
+                setGameId("");
+                return;
+            }
+
             if (response.data[response.data.length - 1] === 'b') {
                 setCurrentPlayer('B');
             } else {
@@ -72,6 +78,10 @@ const Board = ({playerName, gameId, setGameId}) => {
     }, []);
 
     const handleTileOnClick = async (x,y) => {
+        if (winner !== 'x') {
+            return;
+        }
+
         setSelectedTiles([]);
         setSelected("");
 
@@ -94,13 +104,22 @@ const Board = ({playerName, gameId, setGameId}) => {
                     x_to: x,
                     y_to: y,
                 } 
-            })
-            setBoard(boardFromCHFEN(response.data));
+            });
 
-            if (response.data[response.data.length - 1] === 'b') {
+            if (response.status !== 200) {
+                return;
+            }
+
+            setBoard(boardFromCHFEN(response.data.fen));
+
+            if (response.data.fen[response.data.fen.length - 1] === 'b') {
                 setCurrentPlayer('B');
             } else {
                 setCurrentPlayer('W');
+            }
+
+            if (response.data.winner !== winner) {
+                setWinner(response.data.winner);
             }
 
             return;
@@ -172,9 +191,19 @@ const Board = ({playerName, gameId, setGameId}) => {
                 </div>
             </div>
 
-            <div className="mx-4 my-2 text-center text-white font-bold">
-                Current player: {currentPlayer === 'W' ? <span>White</span> : <span className="text-black">Black</span>}
-            </div>
+            {
+                winner === 'x' ?
+                (
+                    <div className="mx-4 my-2 text-center text-white font-bold">
+                        Current player: {currentPlayer === 'W' ? <span>White</span> : <span className="text-black">Black</span>}
+                    </div>
+                ) :
+                (
+                    <div className="mx-4 my-2 text-center text-white font-bold">
+                        {winner === 'w' ? <span>White won!</span> : <span className="text-black">Black won!</span>}
+                    </div>
+                )
+            }
         </div>
     )
 

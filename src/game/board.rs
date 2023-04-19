@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::fmt::format;
 
 #[derive(Clone, Copy, PartialEq, Debug)]

@@ -58,6 +58,12 @@ struct GetBoardInfo {
     game_id: String,
 }
 
+#[derive(Deserialize, Serialize)]
+struct BoardInfoResponse {
+    fen: String,
+    winner: char,
+}
+
 #[get("/")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello world!\n")
@@ -88,7 +94,7 @@ async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
 }
 
 #[post("/make_move")]
-async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<String> {
+async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpResponse, actix_web::error::Error> {
     let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
 
     if make_move_info.x_from > 10 
@@ -139,6 +145,12 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<String> {
             let update_result = conn.prepare("UPDATE games SET game_state=?1 WHERE id=?2 AND player_name=?3");
             let new_fen = game.to_string().unwrap();
 
+            let winner_char = match game.get_winner() {
+                Color::White => 'w',
+                Color::Black => 'b',
+                Color::None => 'x',
+            };
+
             if update_result.is_err() {
                 return Err(actix_web::error::ErrorInternalServerError("SQL error"));
             }
@@ -151,7 +163,10 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<String> {
                 return Err(actix_web::error::ErrorInternalServerError("Unable to update database!".to_string()));
             }
 
-            Ok(new_fen)
+            Ok(HttpResponse::Ok().json(BoardInfoResponse {
+                fen: new_fen,
+                winner: winner_char,
+            }))
         },
         Err(err) => Err(actix_web::error::ErrorInternalServerError(format!("Invalid move: {}", err))),
     }
