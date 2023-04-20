@@ -1,7 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 
-import selected from '../images/PH_selected.png';
+import highlighted from '../images/PH_selected.png';
 import empty from '../images/PH_empty.png';
 import black from '../images/PH_black.png';
 import corner from '../images/PH_corner.png';
@@ -21,7 +21,7 @@ const Board = ({playerName, gameId, setGameId}) => {
 
     const tile_to_img = (tile, x, y) => {
         if (selectedTiles.includes(`${x}, ${y}`)) {
-            return selected;
+            return highlighted;
         }
 
         switch (tile) {

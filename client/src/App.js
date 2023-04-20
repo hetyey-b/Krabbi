@@ -34,7 +34,7 @@ function App() {
                 data: {
                     player_name: playerName,
                     bot_white: playerWhiteBot,
-                    bot_black: playerWhiteBot,
+                    bot_black: playerBlackBot,
                 },
             });
 

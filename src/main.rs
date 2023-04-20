@@ -140,9 +140,9 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpRespon
     }
 
     let mut game = game_result.unwrap();
+
     match game.make_move(make_move_info.x_from, make_move_info.y_from, make_move_info.x_to, make_move_info.y_to) {
         Ok(_) => {
-            let update_result = conn.prepare("UPDATE games SET game_state=?1 WHERE id=?2 AND player_name=?3");
             let new_fen = game.to_string().unwrap();
 
             let winner_char = match game.get_winner() {
@@ -150,6 +150,7 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpRespon
                 Color::Black => 'b',
                 Color::None => 'x',
             };
+            let update_result = conn.prepare("UPDATE games SET game_state=?1 WHERE id=?2 AND player_name=?3");
 
             if update_result.is_err() {
                 return Err(actix_web::error::ErrorInternalServerError("SQL error"));
@@ -168,7 +169,16 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpRespon
                 winner: winner_char,
             }))
         },
-        Err(err) => Err(actix_web::error::ErrorInternalServerError(format!("Invalid move: {}", err))),
+        Err(err) => {
+            // if err == "Game is over!" {
+            //     return Ok(HttpResponse::Ok().json(BoardInfoResponse {
+            //         fen: new_fen,
+            //         winner: winner_char,
+            //     }));
+            // }
+
+            Err(actix_web::error::ErrorInternalServerError(format!("Invalid move: {}", err)))
+        },
     }
 }
 
