@@ -66,7 +66,7 @@ function App() {
     }
 
     return (
-        <div className="mx-4 my-2 grid grid-cols-2 gap-4">
+        <div className="mx-4 my-2 grid grid-cols-2 gap-4 md:px-[33%]">
             <div className="col-span-2">
                 <label htmlFor="playerName" className="block mb-2 text-sm font-medium text-white">Name</label>
                 <input 
