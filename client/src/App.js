@@ -153,6 +153,10 @@ function App() {
             >
                 Start
             </button>
+
+            <footer>
+                Wooden texture from: <a href="https://www.freepik.com/free-photo/wooden-wood-backgrounds-textured-pattern-wallpaper-concept_2760885.htm#query=wood%20texture&position=8&from_view=keyword&track=robertav1_2_sidr">Image by rawpixel.com</a> on Freepik
+            </footer>
         </div>
     );
 }

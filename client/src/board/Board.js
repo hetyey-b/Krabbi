@@ -2,10 +2,12 @@ import React from 'react';
 import axios from 'axios';
 
 import highlighted from '../images/PH_selected.png';
+import highlighted_corner from '../images/PH_selected_corner.png';
 import empty from '../images/PH_empty.png';
 import black from '../images/PH_black.png';
 import corner from '../images/PH_corner.png';
 import king from '../images/PH_king.png';
+import king_on_throne from '../images/PH_king_on_throne.png';
 import white from '../images/PH_white.png';
 
 import {boardFromCHFEN} from '../util/boardFromCHFEN';
@@ -21,7 +23,27 @@ const Board = ({playerName, gameId, setGameId}) => {
 
     const tile_to_img = (tile, x, y) => {
         if (selectedTiles.includes(`${x}, ${y}`)) {
+            if ((x === 0 || x === 10) &&
+                (y === 0 || y === 10)) {
+                return highlighted_corner;
+            }
+
+            if (x === 5 && y === 5) {
+                return highlighted_corner;
+            }
+
             return highlighted;
+        }
+
+        if (x === 5 && y === 5 &&
+            tile === 'k') {
+            return king_on_throne;
+        }
+
+        if ((x === 0 || x === 10) &&
+            (y === 0 || y === 10) &&
+            tile === 'k') {
+            return king_on_throne;
         }
 
         switch (tile) {
