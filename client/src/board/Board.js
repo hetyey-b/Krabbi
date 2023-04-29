@@ -184,49 +184,66 @@ const Board = ({playerName, gameId, setGameId}) => {
     }
 
     return(
-        <div>
-            <div className="flex items-center justify-between text-black font-bold py-2 px-4 bg-amber-500 w-full h-[50px]">
-                <a
-                    className="cursor-pointer hover:text-slate-700"
-                    onClick={() => {setGameId("")}}
-                >
-                    {"<< Abort game"}
-                </a>
-                <span>{playerName}</span>
-            </div>
+        <div
+            className="flex justify-between flex-col h-[100vh]"
+        >
 
-            <div className="flex justify-center w-full">
-                <div
-                    className="max-w-[330px] md:max-w-[660px] mx-4 my-2 grid grid-cols-11"
-                >
-                    {
-                    board.map((row, x) => {
-                        return row.map((tile, y) => 
-                            <img 
-                                key={`${tile}-${tile}-${x}-${y}`}
-                                className="mr-0 ml-0 h-[30px] w-[30px] md:h-[60px] md:w-[60px] m-0"
-                                src={tile_to_img(tile,x,y)}
-                                onClick={() => handleTileOnClick(x,y)}
-                            />
-                        );
-                    }) 
-                }
+            <div>
+                <div className="flex items-center justify-between text-black font-bold py-2 px-4 bg-amber-500 w-full h-[50px]">
+                    <a
+                        className="cursor-pointer hover:text-slate-700"
+                        onClick={() => {setGameId("")}}
+                    >
+                        {"<< Abort game"}
+                    </a>
+                    <span>{playerName}</span>
                 </div>
+
+                <div className="flex justify-center w-full">
+                    <div
+                        className="max-w-[330px] md:max-w-[660px] mx-4 my-2 grid grid-cols-11"
+                    >
+                        {
+                        board.map((row, x) => {
+                            return row.map((tile, y) => 
+                                <img 
+                                    key={`${tile}-${tile}-${x}-${y}`}
+                                    className="mr-0 ml-0 h-[30px] w-[30px] md:h-[60px] md:w-[60px] m-0"
+                                    src={tile_to_img(tile,x,y)}
+                                    onClick={() => handleTileOnClick(x,y)}
+                                />
+                            );
+                        }) 
+                    }
+                    </div>
+                </div>
+
+                {
+                    winner === 'x' ?
+                    (
+                        <div className="mx-4 my-2 text-center text-white font-bold">
+                            Current player: {currentPlayer === 'W' ? <span>White</span> : <span className="text-black">Black</span>}
+                        </div>
+                    ) :
+                    (
+                        <div className="mx-4 my-2 text-center text-white font-bold">
+                            {winner === 'w' ? <span>White won!</span> : <span className="text-black">Black won!</span>}
+                        </div>
+                    )
+                }
             </div>
 
-            {
-                winner === 'x' ?
-                (
-                    <div className="mx-4 my-2 text-center text-white font-bold">
-                        Current player: {currentPlayer === 'W' ? <span>White</span> : <span className="text-black">Black</span>}
-                    </div>
-                ) :
-                (
-                    <div className="mx-4 my-2 text-center text-white font-bold">
-                        {winner === 'w' ? <span>White won!</span> : <span className="text-black">Black won!</span>}
-                    </div>
-                )
-            }
+            <footer
+                className="w-full text-center items-center mb-2"
+            >
+                Wooden texture from: 
+                <a 
+                    className="underline ml-1"
+                    href="https://www.freepik.com/free-photo/wooden-wood-backgrounds-textured-pattern-wallpaper-concept_2760885.htm#query=wood%20texture&position=8&from_view=keyword&track=robertav1_2_sidr"
+                >
+                    Image by rawpixel.com
+                </a> on Freepik
+            </footer>
         </div>
     )
 
