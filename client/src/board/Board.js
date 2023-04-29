@@ -65,13 +65,14 @@ const Board = ({playerName, gameId, setGameId}) => {
                 return;
             }
 
-            if (response.data[response.data.length - 1] === 'b') {
+            if (response.data.fen[response.data.fen.length - 1] === 'b') {
                 setCurrentPlayer('B');
             } else {
                 setCurrentPlayer('W');
             }
 
-            setBoard(boardFromCHFEN(response.data));
+            setBoard(boardFromCHFEN(response.data.fen));
+            setWinner(response.data.winner);
         };
 
         get_board();
@@ -133,7 +134,7 @@ const Board = ({playerName, gameId, setGameId}) => {
             return;
         }
 
-        if ((board[x][y] === 'y' || board[x][y] === 'w') && currentPlayer === 'B') {
+        if ((board[x][y] === 'k' || board[x][y] === 'w') && currentPlayer === 'B') {
             return;
         }
 

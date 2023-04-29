@@ -61,7 +61,7 @@ struct GetBoardInfo {
 #[derive(Deserialize, Serialize)]
 struct BoardInfoResponse {
     fen: String,
-    winner: char,
+    winner: String,
 }
 
 #[get("/")]
@@ -80,15 +80,22 @@ async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
     let new_game: Game = Game::new(new_game_info.bot_white, new_game_info.bot_black);
     let player_name = &new_game_info.player_name;
     let new_game_id = Uuid::new_v4().to_string(); 
+    let winner: String = match new_game.get_winner() {
+        Color::White => "w".to_string(),
+        Color::Black => "b".to_string(),
+        Color::None => "x".to_string(),
+    };
 
     let result = conn.execute(
-        "INSERT INTO games (id, game_state, player_name) VALUES (?1, ?2, ?3)",
-        [&new_game_id, &new_game.to_string().unwrap(), &player_name.to_string()],
+        "INSERT INTO games (id, game_state, player_name, winner) VALUES (?1, ?2, ?3, ?4)",
+        [&new_game_id, &new_game.to_string().unwrap(), &player_name.to_string(), &winner],
     );
    
     if result.is_ok() {
         Ok(new_game_id)
     } else {
+        let err = result.unwrap_err();
+        println!("{:?}", err);
         Err(actix_web::error::ErrorInternalServerError("Could not create new game!"))
     }
 }
@@ -146,11 +153,11 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpRespon
             let new_fen = game.to_string().unwrap();
 
             let winner_char = match game.get_winner() {
-                Color::White => 'w',
-                Color::Black => 'b',
-                Color::None => 'x',
+                Color::White => 'w'.to_string(),
+                Color::Black => 'b'.to_string(),
+                Color::None => 'x'.to_string(),
             };
-            let update_result = conn.prepare("UPDATE games SET game_state=?1 WHERE id=?2 AND player_name=?3");
+            let update_result = conn.prepare("UPDATE games SET game_state=?1, winner=?2 WHERE id=?3 AND player_name=?4");
 
             if update_result.is_err() {
                 return Err(actix_web::error::ErrorInternalServerError("SQL error"));
@@ -158,7 +165,7 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpRespon
 
             let mut update = update_result.unwrap();
 
-            let update_query_result = update.execute(rusqlite::params![new_fen, make_move_info.game_id, make_move_info.player_name]);
+            let update_query_result = update.execute(rusqlite::params![new_fen, winner_char, make_move_info.game_id, make_move_info.player_name]);
 
             if update_query_result.is_err() {
                 return Err(actix_web::error::ErrorInternalServerError("Unable to update database!".to_string()));
@@ -282,6 +289,7 @@ async fn get_board(get_board_info: web::Json<GetBoardInfo>) -> Result<HttpRespon
     let mut rows = rows_result.unwrap();
 
     let chfen: String;
+    let winner: String;
 
     if let Some(row) = rows.next().transpose() {
         if row.is_err() {
@@ -289,11 +297,15 @@ async fn get_board(get_board_info: web::Json<GetBoardInfo>) -> Result<HttpRespon
         }
         let row_data = row.unwrap();
         chfen = row_data.get("game_state").unwrap();
+        winner = row_data.get("winner").unwrap();
     } else {
         return Err(actix_web::error::ErrorInternalServerError("No game found"));
     }
 
-    Ok(HttpResponse::Ok().body(chfen))
+    Ok(HttpResponse::Ok().json(BoardInfoResponse {
+        fen: chfen,
+        winner: winner,
+    }))
 }
 
 #[actix_web::main]
@@ -315,7 +327,8 @@ async fn main() -> std::io::Result<()> {
         "CREATE TABLE IF NOT EXISTS games (
             id TEXT PRIMARY KEY UNIQUE,
             game_state TEXT,
-            player_name TEXT
+            player_name TEXT,
+            winner TEXT
         )",
         [],
     ).expect("Failed to create table 'games'");
