@@ -6,10 +6,28 @@ import Board from "./board/Board";
 const BACKEND_URL = `${process.env.REACT_APP_SERVER_URL}:${process.env.REACT_APP_SERVER_PORT}`;
 
 function App() {
+    const [serverSanityCheckError, setServerSanityCheckError] = React.useState('');
     const [playerWhiteBot, setPlayerWhiteBot] = React.useState(false);
     const [playerBlackBot, setPlayerBlackBot] = React.useState(false);
     const [playerName, setPlayerName] = React.useState(localStorage.getItem("playerName") || "");
     const [gameId, setGameId] = React.useState(localStorage.getItem("gameId") || "");
+
+    React.useEffect(() => {
+        const sanityCheck = async () => {
+            try {
+                let response = await axios({
+                    method: "GET",
+                    url: `${BACKEND_URL}/`, 
+                });
+            } catch(err) {
+                localStorage.setItem("gameId", "");
+                setGameId("");
+                setServerSanityCheckError(err);
+            }
+        }
+
+        sanityCheck();
+    }, []);
 
     const handleStartGameOnClick = async () => {
         if (!playerName) {
@@ -62,6 +80,23 @@ function App() {
                 gameId={gameId}
                 setGameId={setGameId}
             />
+        )
+    }
+
+    if (serverSanityCheckError !== '') {
+        return (
+            <div className="mx-4 my-4 items-center text-center md:px-[33%]">
+                <p
+                    className="w-full font-bold"
+                >
+                    Error: Server connection not found
+                </p>
+                <p
+                    className="w-full"
+                >
+                    Refresh the page, and try again later
+                </p>
+            </div>
         )
     }
 
