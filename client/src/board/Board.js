@@ -201,14 +201,14 @@ const Board = ({playerName, gameId, setGameId}) => {
 
                 <div className="flex justify-center w-full">
                     <div
-                        className="max-w-[330px] md:max-w-[660px] mx-4 my-2 grid grid-cols-11"
+                        className="max-w-[330px] md:max-w-[770px] mx-4 my-2 grid grid-cols-11"
                     >
                         {
                         board.map((row, x) => {
                             return row.map((tile, y) => 
                                 <img 
                                     key={`${tile}-${tile}-${x}-${y}`}
-                                    className="mr-0 ml-0 h-[30px] w-[30px] md:h-[60px] md:w-[60px] m-0"
+                                    className="mr-0 ml-0 h-[30px] w-[30px] md:h-[70px] md:w-[70px] m-0"
                                     src={tile_to_img(tile,x,y)}
                                     onClick={() => handleTileOnClick(x,y)}
                                 />

@@ -83,7 +83,23 @@ impl Game {
             new_board.set_tile(Tile::White, coord.0, coord.1);
         }
         new_board.set_tile(Tile::King, KING_COORD.0, KING_COORD.1);
-        
+
+        if bot_player_black {
+            let ai_move_result = get_random_move(new_board, Color::Black);
+
+            if ai_move_result.is_ok() {
+                let ai_move = ai_move_result.unwrap();
+                new_board.set_tile(Tile::Empty, ai_move[0].0, ai_move[0].1);
+                new_board.set_tile(Tile::Black, ai_move[1].0, ai_move[1].1);
+
+                return Game {
+                    board: new_board,
+                    current_player: Color::White,
+                    bot_white: bot_player_white,
+                    bot_black: bot_player_black,
+                };
+            }
+        }
         Game {
             board: new_board,
             current_player: Color::Black,
@@ -180,7 +196,7 @@ impl Game {
 
     pub fn make_move(&mut self, x_from: usize, y_from: usize, x_to: usize, y_to: usize) -> Result<&Board, &str> {
         if self.board.winner != Color::None {
-            return Err("Game is over!");
+            return Ok(&self.board);
         }
 
         if !is_legal_move(&self.board, x_from, y_from, x_to, y_to) {
