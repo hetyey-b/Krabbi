@@ -11,6 +11,7 @@ function App() {
     const [playerBlackBot, setPlayerBlackBot] = React.useState(false);
     const [playerName, setPlayerName] = React.useState(localStorage.getItem("playerName") || "");
     const [gameId, setGameId] = React.useState(localStorage.getItem("gameId") || "");
+    const [accordionOpen, setAccordionOpen] = React.useState(false);
 
     React.useEffect(() => {
         const sanityCheck = async () => {
@@ -156,6 +157,33 @@ function App() {
                 >
                     Start
                 </button>
+
+                <div className="col-span-2">
+                    <div
+                        className="flex justify-between border-2 border-white rounded w-full px-4 py-2 font-bold cursor-pointer hover:bg-amber-700"
+                        onClick={() => setAccordionOpen(!accordionOpen)}
+                    >
+
+                        <span>
+                            How to play
+                        </span>
+                        <span>
+                            {accordionOpen ? '▲' : '▼'}
+                        </span>
+                    </div>
+                    <div
+                        className={`${accordionOpen ? '' : 'hidden'}
+                            px-4 py-2 border border-white rounded-b rounded-t-none mx-1`}
+                    >
+                        <a 
+                            href="http://aagenielsen.dk/copenhagen_rules.php"
+                            className="underline"
+                            target="_blank"
+                        >
+                            For detailed rules, check out the official Copenhagen Hnefatafl page
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <footer
