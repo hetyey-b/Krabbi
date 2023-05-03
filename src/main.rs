@@ -64,12 +64,12 @@ struct BoardInfoResponse {
     winner: String,
 }
 
-#[get("/")]
+#[get("/api")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello world!\n")
 }
 
-#[post("/new_game")]
+#[post("/api/new_game")]
 async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
     let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
 
@@ -100,7 +100,7 @@ async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
     }
 }
 
-#[post("/make_move")]
+#[post("/api/make_move")]
 async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpResponse, actix_web::error::Error> {
     let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
 
@@ -189,7 +189,7 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpRespon
     }
 }
 
-#[post("/legal_moves")]
+#[post("/api/legal_moves")]
 async fn legal_moves(legal_moves_info: web::Json<GetLegalMovesInfo>) -> Result<String> {
     let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
 
@@ -243,7 +243,7 @@ async fn legal_moves(legal_moves_info: web::Json<GetLegalMovesInfo>) -> Result<S
     return Ok(format!("{:?}",legal_moves_result.unwrap()))
 }
 
-#[post("/get_games")]
+#[post("/api/get_games")]
 async fn get_games(legal_moves_info: web::Json<GetGamesInfo>) -> Result<HttpResponse, actix_web::error::Error> {
     let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
 
@@ -268,7 +268,7 @@ async fn get_games(legal_moves_info: web::Json<GetGamesInfo>) -> Result<HttpResp
     Ok(HttpResponse::Ok().json(rows))
 }
 
-#[post("/get_board")]
+#[post("/api/get_board")]
 async fn get_board(get_board_info: web::Json<GetBoardInfo>) -> Result<HttpResponse, actix_web::error::Error> {
     let conn = Connection::open(DB_NAME).expect(&format!("Failed database connection to {}",DB_NAME).to_owned());
 

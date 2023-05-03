@@ -3,7 +3,7 @@ import axios from 'axios';
 
 import Board from "./board/Board";
 
-const BACKEND_URL = `${process.env.REACT_APP_SERVER_URL}:${process.env.REACT_APP_SERVER_PORT}`;
+const BACKEND_URL = `${process.env.REACT_APP_SERVER_URL}:${process.env.REACT_APP_SERVER_PORT}/api`;
 
 function App() {
     const [serverSanityCheckError, setServerSanityCheckError] = React.useState('');
@@ -17,7 +17,7 @@ function App() {
             try {
                 let response = await axios({
                     method: "GET",
-                    url: `${BACKEND_URL}/`, 
+                    url: `${BACKEND_URL}`, 
                 });
             } catch(err) {
                 localStorage.setItem("gameId", "");

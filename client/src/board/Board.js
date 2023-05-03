@@ -12,7 +12,7 @@ import white from '../images/PH_white.png';
 
 import {boardFromCHFEN} from '../util/boardFromCHFEN';
 
-const BACKEND_URL = `${process.env.REACT_APP_SERVER_URL}:${process.env.REACT_APP_SERVER_PORT}`;
+const BACKEND_URL = `${process.env.REACT_APP_SERVER_URL}:${process.env.REACT_APP_SERVER_PORT}/api`;
 
 const Board = ({playerName, gameId, setGameId}) => {
     const [board, setBoard] = React.useState([[]]);
