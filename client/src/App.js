@@ -42,6 +42,16 @@ function App() {
         
         localStorage.setItem("playerName", playerName);
         
+        let difficulty;
+
+        if (playerWhiteBot) {
+            difficulty = playerWhiteBot;
+        } else if (playerBlackBot) {
+            difficulty = playerBlackBot;
+        } else {
+            difficulty = 1;
+        }
+
         try {
             let response = await axios({
                 method: "POST",
@@ -52,8 +62,9 @@ function App() {
                 },
                 data: {
                     player_name: playerName,
-                    bot_white: playerWhiteBot,
-                    bot_black: playerBlackBot,
+                    bot_white: !!playerWhiteBot,
+                    bot_black: !!playerBlackBot,
+                    bot_difficulty: difficulty,
                 },
             });
 
@@ -123,10 +134,10 @@ function App() {
                         if (playerBlackBot) {
                             setPlayerBlackBot(false);
                         }
-                        setPlayerWhiteBot(true);
+                        setPlayerWhiteBot(1);
                     }}
                 >
-                    Bot{playerWhiteBot ? " ✓" : ""}
+                    Bot (easy){playerWhiteBot === 1 ? " ✓" : ""}
                 </button>
                 <button 
                     className="bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded"
@@ -134,10 +145,54 @@ function App() {
                         if (playerWhiteBot) {
                             setPlayerWhiteBot(false);
                         }
-                        setPlayerBlackBot(true);
+                        setPlayerBlackBot(1);
                     }}
                 >
-                    Bot{playerBlackBot ? " ✓" : ""}
+                    Bot (easy){playerBlackBot === 1 ? " ✓" : ""}
+                </button>
+                <button 
+                    className="bg-slate-300 hover:bg-slate-100 text-black font-bold py-2 px-4 rounded"
+                    onClick={() => {
+                        if (playerBlackBot) {
+                            setPlayerBlackBot(false);
+                        }
+                        setPlayerWhiteBot(2);
+                    }}
+                >
+                    Bot (medium){playerWhiteBot === 2 ? " ✓" : ""}
+                </button>
+                <button 
+                    className="bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded"
+                    onClick={() => {
+                        if (playerWhiteBot) {
+                            setPlayerWhiteBot(false);
+                        }
+                        setPlayerBlackBot(2);
+                    }}
+                >
+                    Bot (medium){playerBlackBot === 2 ? " ✓" : ""}
+                </button>
+                <button 
+                    className="bg-slate-300 hover:bg-slate-100 text-black font-bold py-2 px-4 rounded"
+                    onClick={() => {
+                        if (playerBlackBot) {
+                            setPlayerBlackBot(false);
+                        }
+                        setPlayerWhiteBot(3);
+                    }}
+                >
+                    Bot (hard){playerWhiteBot === 3 ? " ✓" : ""}
+                </button>
+                <button 
+                    className="bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded"
+                    onClick={() => {
+                        if (playerWhiteBot) {
+                            setPlayerWhiteBot(false);
+                        }
+                        setPlayerBlackBot(3);
+                    }}
+                >
+                    Bot (hard){playerBlackBot === 3 ? " ✓" : ""}
                 </button>
                 <button 
                     className="bg-slate-300 hover:bg-slate-100 text-black font-bold py-2 px-4 rounded"

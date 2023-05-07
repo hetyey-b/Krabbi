@@ -28,6 +28,7 @@ struct NewGameInfo {
     player_name: String,
     bot_white: bool,
     bot_black: bool,
+    bot_difficulty: u8,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -77,7 +78,12 @@ async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
         return Err(actix_web::error::ErrorInternalServerError("Cannot create a game without a human player!"));
     }
 
-    let new_game: Game = Game::new(new_game_info.bot_white, new_game_info.bot_black);
+    let bot_difficulty = &new_game_info.bot_difficulty;
+    let new_game: Game = Game::new(
+                        new_game_info.bot_white, 
+                        new_game_info.bot_black, 
+                        new_game_info.bot_difficulty
+                    );
     let player_name = &new_game_info.player_name;
     let new_game_id = Uuid::new_v4().to_string(); 
     let winner: String = match new_game.get_winner() {
@@ -85,10 +91,20 @@ async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
         Color::Black => "b".to_string(),
         Color::None => "x".to_string(),
     };
+    if bot_difficulty > &3 || bot_difficulty< &1 {
+        return Err(actix_web::error::ErrorInternalServerError("Bot difficulty must be 1, 2 or 3!"));
+    }
 
     let result = conn.execute(
-        "INSERT INTO games (id, game_state, player_name, winner) VALUES (?1, ?2, ?3, ?4)",
-        [&new_game_id, &new_game.to_string().unwrap(), &player_name.to_string(), &winner],
+        "INSERT INTO games (id, game_state, player_name, winner, bot_difficulty) 
+            VALUES (?1, ?2, ?3, ?4, ?5)",
+        [
+            &new_game_id, 
+            &new_game.to_string().unwrap(), 
+            &player_name.to_string(), 
+            &winner, 
+            &bot_difficulty.to_string()
+        ],
     );
    
     if result.is_ok() {
@@ -128,6 +144,7 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpRespon
     let mut rows = rows_result.unwrap();
 
     let chfen: String;
+    let difficulty: u8;
 
     if let Some(row) = rows.next().transpose() {
         if row.is_err() {
@@ -135,12 +152,12 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpRespon
         }
         let row_data = row.unwrap();
         chfen = row_data.get("game_state").unwrap();
-
+        difficulty = row_data.get("bot_difficulty").expect("No bot difficulty in db row");
     } else {
         return Err(actix_web::error::ErrorInternalServerError("No game found"));
     }
 
-    let game_result = Game::from_string(chfen);
+    let game_result = Game::from_string(chfen, difficulty);
 
     if game_result.is_err() {
         return Err(actix_web::error::ErrorInternalServerError("Error parsing FEN"));
@@ -215,6 +232,7 @@ async fn legal_moves(legal_moves_info: web::Json<GetLegalMovesInfo>) -> Result<S
     let mut rows = rows_result.unwrap();
 
     let chfen: String;
+    let difficulty: u8;
 
     if let Some(row) = rows.next().transpose() {
         if row.is_err() {
@@ -222,12 +240,12 @@ async fn legal_moves(legal_moves_info: web::Json<GetLegalMovesInfo>) -> Result<S
         }
         let row_data = row.unwrap();
         chfen = row_data.get("game_state").unwrap();
-
+        difficulty = row_data.get("bot_difficulty").expect("No bot difficulty in db row");
     } else {
         return Err(actix_web::error::ErrorInternalServerError("No game found"));
     }
 
-    let game_result = Game::from_string(chfen);
+    let game_result = Game::from_string(chfen, difficulty);
 
     if game_result.is_err() {
         return Err(actix_web::error::ErrorInternalServerError("Error parsing FEN"));
@@ -328,7 +346,8 @@ async fn main() -> std::io::Result<()> {
             id TEXT PRIMARY KEY UNIQUE,
             game_state TEXT,
             player_name TEXT,
-            winner TEXT
+            winner TEXT,
+            bot_difficulty INTEGER
         )",
         [],
     ).expect("Failed to create table 'games'");

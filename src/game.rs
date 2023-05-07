@@ -70,10 +70,11 @@ pub struct Game {
     pub current_player: Color,
     pub bot_white: bool,
     pub bot_black: bool,
+    pub bot_difficulty: u8,
 }
 
 impl Game {
-    pub fn new(bot_player_white: bool, bot_player_black: bool) -> Game {
+    pub fn new(bot_player_white: bool, bot_player_black: bool, bot_difficulty: u8) -> Game {
         let mut new_board = Board::new();
 
         for coord in BLACK_COORDS.iter() {
@@ -97,6 +98,7 @@ impl Game {
                     current_player: Color::White,
                     bot_white: bot_player_white,
                     bot_black: bot_player_black,
+                    bot_difficulty: bot_difficulty,
                 };
             }
         }
@@ -105,6 +107,7 @@ impl Game {
             current_player: Color::Black,
             bot_white: bot_player_white,
             bot_black: bot_player_black,
+            bot_difficulty: bot_difficulty,
         }
     }
 
@@ -118,7 +121,7 @@ impl Game {
         }
     }
 
-    pub fn from_string(mut str: String) -> Result<Game, String> {
+    pub fn from_string(mut str: String, bot_difficulty: u8) -> Result<Game, String> {
         let new_current_player: Color;
         let bot_player_white: bool;
         let bot_player_black: bool;
@@ -156,6 +159,7 @@ impl Game {
             current_player: new_current_player,
             bot_white: bot_player_white,
             bot_black: bot_player_black,
+            bot_difficulty: bot_difficulty,
         })
     }
 
@@ -228,7 +232,12 @@ impl Game {
 
         if (self.current_player == Color::White && self.bot_white) ||
             (self.current_player == Color::Black && self.bot_black){
-            let ai_move_result = get_random_move(self.board, self.current_player);
+            let ai_move_result = match self.bot_difficulty {
+                1 => get_random_move(self.board, self.current_player),
+                2 => get_random_move(self.board, self.current_player),
+                3 => get_random_move(self.board, self.current_player),
+                _ => panic!("Invalid bot difficulty"),
+            };
 
             if ai_move_result.is_err() {
                 self.board.winner = if self.current_player == Color::Black {
@@ -253,11 +262,11 @@ mod tests {
 
     #[test]
     fn test_game_string_conversion() {
-        let game = Game::new(false, true);
+        let game = Game::new(false, true, 1);
 
         let string_conversion = game.to_string().unwrap();
 
-        let new_game = Game::from_string(string_conversion).unwrap();
+        let new_game = Game::from_string(string_conversion, 1).unwrap();
 
         assert_eq!(game.get_winner(), new_game.get_winner());
         assert_eq!(game.current_player, new_game.current_player);
