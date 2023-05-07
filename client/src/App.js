@@ -2,6 +2,7 @@ import React from "react";
 import axios from 'axios';
 
 import Board from "./board/Board";
+import HowToPlay from "./components/HowToPlay.js";
 
 const BACKEND_URL = `${process.env.REACT_APP_SERVER_URL}:${process.env.REACT_APP_SERVER_PORT}/api`;
 
@@ -230,13 +231,7 @@ function App() {
                         className={`${accordionOpen ? '' : 'hidden'}
                             px-4 py-2 border border-white rounded-b rounded-t-none mx-1`}
                     >
-                        <a 
-                            href="http://aagenielsen.dk/copenhagen_rules.php"
-                            className="underline"
-                            target="_blank"
-                        >
-                            For detailed rules, check out the official Copenhagen Hnefatafl page
-                        </a>
+                        <HowToPlay />
                     </div>
                 </div>
             </div>
