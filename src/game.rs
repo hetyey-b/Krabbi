@@ -1,6 +1,6 @@
 use std::thread::current;
 
-use self::{legal_moves::is_legal_move, board::Board, board::Color, board::Tile, after_move_eval::after_move_eval, ai::get_random_move};
+use self::{legal_moves::is_legal_move, board::Board, board::Color, board::Tile, after_move_eval::after_move_eval, ai::{get_random_move, minimax_best_move}};
 use crate::game::board::HasColor;
 
 pub mod legal_moves;
@@ -203,7 +203,9 @@ impl Game {
             return Ok(&self.board);
         }
 
+        println!("Trying to make move {},{} -> {},{}",x_from,y_from,x_to,y_to);
         if !is_legal_move(&self.board, x_from, y_from, x_to, y_to) {
+            println!("Illegal move {},{} -> {},{}",x_from,y_from,x_to,y_to);
             return Err("Illegal move!");
         }
 
@@ -234,8 +236,7 @@ impl Game {
             (self.current_player == Color::Black && self.bot_black){
             let ai_move_result = match self.bot_difficulty {
                 1 => get_random_move(self.board, self.current_player),
-                2 => get_random_move(self.board, self.current_player),
-                3 => get_random_move(self.board, self.current_player),
+                2 => Ok(minimax_best_move(&self.board, self.current_player, 1)),
                 _ => panic!("Invalid bot difficulty"),
             };
 
@@ -249,6 +250,7 @@ impl Game {
             }
 
             let ai_move = ai_move_result.unwrap();
+            println!("calling make_move from ai_move: {:?}", ai_move);
             return self.make_move(ai_move[0].0, ai_move[0].1, ai_move[1].0, ai_move[1].1);
         }
 

@@ -91,7 +91,7 @@ async fn new_game(new_game_info: web::Json<NewGameInfo>) -> Result<String> {
         Color::Black => "b".to_string(),
         Color::None => "x".to_string(),
     };
-    if bot_difficulty > &3 || bot_difficulty< &1 {
+    if bot_difficulty > &2 || bot_difficulty< &1 {
         return Err(actix_web::error::ErrorInternalServerError("Bot difficulty must be 1, 2 or 3!"));
     }
 
@@ -165,6 +165,11 @@ async fn make_move(make_move_info: web::Json<MakeMoveInfo>) -> Result<HttpRespon
 
     let mut game = game_result.unwrap();
 
+    println!("trying to make move: {},{} -> {},{}", 
+             make_move_info.x_from, 
+             make_move_info.y_from,
+             make_move_info.x_to,
+             make_move_info.y_to);
     match game.make_move(make_move_info.x_from, make_move_info.y_from, make_move_info.x_to, make_move_info.y_to) {
         Ok(_) => {
             let new_fen = game.to_string().unwrap();

@@ -160,7 +160,7 @@ function App() {
                         setPlayerWhiteBot(2);
                     }}
                 >
-                    Bot (medium){playerWhiteBot === 2 ? " ✓" : ""}
+                    Bot (hard){playerWhiteBot === 2 ? " ✓" : ""}
                 </button>
                 <button 
                     className="bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded"
@@ -171,29 +171,7 @@ function App() {
                         setPlayerBlackBot(2);
                     }}
                 >
-                    Bot (medium){playerBlackBot === 2 ? " ✓" : ""}
-                </button>
-                <button 
-                    className="bg-slate-300 hover:bg-slate-100 text-black font-bold py-2 px-4 rounded"
-                    onClick={() => {
-                        if (playerBlackBot) {
-                            setPlayerBlackBot(false);
-                        }
-                        setPlayerWhiteBot(3);
-                    }}
-                >
-                    Bot (hard){playerWhiteBot === 3 ? " ✓" : ""}
-                </button>
-                <button 
-                    className="bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => {
-                        if (playerWhiteBot) {
-                            setPlayerWhiteBot(false);
-                        }
-                        setPlayerBlackBot(3);
-                    }}
-                >
-                    Bot (hard){playerBlackBot === 3 ? " ✓" : ""}
+                    Bot (hard){playerBlackBot === 2 ? " ✓" : ""}
                 </button>
                 <button 
                     className="bg-slate-300 hover:bg-slate-100 text-black font-bold py-2 px-4 rounded"
