@@ -14,7 +14,7 @@ import {boardFromCHFEN} from '../util/boardFromCHFEN';
 
 const BACKEND_URL = `${process.env.REACT_APP_SERVER_URL}:${process.env.REACT_APP_SERVER_PORT}/api`;
 
-const Board = ({playerName, gameId, setGameId}) => {
+const Board = ({playerName, gameId, setGameId, setLoading}) => {
     const [board, setBoard] = React.useState([[]]);
     const [selectedTiles, setSelectedTiles] = React.useState([]);
     const [selected, setSelected] = React.useState("");
@@ -112,6 +112,7 @@ const Board = ({playerName, gameId, setGameId}) => {
         let selectedY = parseInt(selected.split(', ')[1]);
 
         if (selectedTiles.includes(`${x}, ${y}`)) {
+            setLoading(true);
             let response = await axios({
                 method: "POST",
                 url: `${BACKEND_URL}/make_move`,
@@ -128,6 +129,7 @@ const Board = ({playerName, gameId, setGameId}) => {
                     y_to: y,
                 } 
             });
+            setLoading(false);
 
             if (response.status !== 200) {
                 return;

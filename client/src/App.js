@@ -13,6 +13,7 @@ function App() {
     const [playerName, setPlayerName] = React.useState(localStorage.getItem("playerName") || "");
     const [gameId, setGameId] = React.useState(localStorage.getItem("gameId") || "");
     const [accordionOpen, setAccordionOpen] = React.useState(false);
+    const [loading, setLoading] = React.useState(false);
 
     React.useEffect(() => {
         const sanityCheck = async () => {
@@ -88,11 +89,26 @@ function App() {
 
     if (gameId) {
         return (
-            <Board
-                playerName={playerName}
-                gameId={gameId}
-                setGameId={setGameId}
-            />
+            <div>
+                <Board
+                    playerName={playerName}
+                    gameId={gameId}
+                    setGameId={setGameId}
+                    setLoading={setLoading}
+                    />
+
+                <div
+                    className={`fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-white bg-opacity-40
+                                font-bold text-lg ${loading ? 'block' : 'hidden'}`}
+                > 
+                    <div class="w-12 h-12 rounded-full animate-spin block
+                            border-4 border-solid border-white border-t-transparent" />
+                    
+                    <span className="block ml-5">
+                        Loading...
+                    </span>
+                </div>
+            </div>
         )
     }
 
@@ -225,6 +241,18 @@ function App() {
                     Image by rawpixel.com
                 </a> on Freepik
             </footer>
+
+            <div
+                className={`fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-white bg-opacity-40
+                            font-bold text-lg ${loading ? 'block' : 'hidden'}`}
+            > 
+                <div class="w-12 h-12 rounded-full animate-spin block
+                        border-4 border-solid border-white border-t-transparent" />
+                
+                <span className="block ml-5">
+                    Loading...
+                </span>
+            </div>
         </div>
     );
 }
