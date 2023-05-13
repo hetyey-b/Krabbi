@@ -1,25 +1,14 @@
 use actix_web::{web, get, post, App, HttpResponse, HttpServer, Responder, Result};
 use dotenv::dotenv;
-use game::{Game, board::{Board, Color, Tile}, after_move_eval::after_move_eval};
+use game::{Game, board::Color};
 use serde::{Deserialize, Serialize};
-use rusqlite::{params, Connection, Result as RusqliteResult, Statement};
+use rusqlite::Connection;
 use crate::game::legal_moves::get_legal_moves;
-use actix_web::error::ErrorInternalServerError;
 use actix_cors::Cors;
-
-use crate::game::after_move_eval::{edge_fort::edge_fort, surround_win::surround_win};
 
 use uuid::Uuid;
 
 pub mod game;
-
-// fn main() {
-//     let mut board: Board = Board::new();
-//     board.set_tile(Tile::King, 0, 5);
-//     board.print_board();
-//     let legal_moves = get_legal_moves(&board, 0, 5).unwrap();
-//     println!("legal moves: {:?}", legal_moves);
-// }
 
 static DB_NAME: &str = "test.db";
 

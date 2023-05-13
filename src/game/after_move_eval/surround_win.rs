@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::game::{board::{Board, Tile, Color, HasColor}, legal_moves::get_legal_moves};
+use crate::game::board::{Board, Tile, Color, HasColor};
 
 pub fn surround_win(board: Board) -> bool {
     let get_king_coords = |get_king_board: Board| -> Result<(usize, usize), String> {

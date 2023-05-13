@@ -1,5 +1,3 @@
-use std::thread::current;
-
 use self::{legal_moves::is_legal_move, board::Board, board::Color, board::Tile, after_move_eval::after_move_eval, ai::{get_random_move, minimax_best_move}};
 use crate::game::board::HasColor;
 
