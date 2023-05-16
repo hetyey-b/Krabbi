@@ -1,6 +1,17 @@
 use crate::game::board::{Board, Color, HasColor, Tile, Captures, CapturesKing};
 
+/*
+    Usage: if the piece on 'board' at coordinates ('x','y') has just been moved there, this function
+    returns whether the piece to next to it, at (x + x_offset, y + y_offset) should be removed from 
+    the board
 
+    Returns true if the piece on 'board' at coordinates ('x', 'y') can capture in the direction
+    shown by it's offset.
+
+    It checks if there is a necessary capturing piece or tile on the other side of the attacked piece.
+
+    If the attacked piece is a king, it checks for the king being surrounded on all four sides.
+*/
 pub fn captures_in_dir(board: Board, x: usize, y: usize, x_offset: isize, y_offset: isize) -> bool {
     let captured_x: usize;
     let captured_y: usize;

@@ -125,11 +125,6 @@ pub fn minimax_best_move(state: &Board, current_player: Color, depth: i32) -> [(
 // initially, alpha should be f32::MIN, and beta should be f32::MAX
 fn minimax_alpha_beta(state: &Board, depth: i32, mut alpha: f32, mut beta: f32, max_player: bool) -> f32 {
     if depth == 0 {
-        if evaluate(state) != 0.0 {
-            state.print_board();
-            println!("evaluation: {}",evaluate(state));
-            println!("///////////////////");
-        }
         return evaluate(state);
     }
 

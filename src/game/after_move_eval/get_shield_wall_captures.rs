@@ -1,6 +1,11 @@
 use crate::game::board::{Board, HasColor, Color, Tile};
 use std::collections::VecDeque;
 
+/*
+    Given board and coordinates of the last move (x,y), return a vector
+    including a tuple of (usize,usize), that indicates the coordinates of every
+    enemy piece that has to be removed due to a shieldwall capture
+*/
 pub fn get_shield_wall_captures(board: Board, x: usize, y: usize) -> Vec<(usize,usize)> {
     /*
         1) See if any neighbor is of opposite color

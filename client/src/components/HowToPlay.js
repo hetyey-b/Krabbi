@@ -43,7 +43,8 @@ const HowToPlay = () => {
 
             <p>
                 Groups of pieces may be captured along the board edge by fully surrounding them.
-                This move is called a shieldwall capture.
+                This move is called a shieldwall capture. The king is immune to shieldwall captures,
+                if he is part of the group being attacked, all other pieces are removed, but it stays.
             </p>
             <img src={shieldwall}/>
 
